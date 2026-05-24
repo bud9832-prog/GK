@@ -55,7 +55,7 @@
 - **유지 확정:** `ThirdParty/include/**`, `ThirdParty/x64_vc170/Profile(StaticCRT)/**`, `Wwise_UE_Integration_ko.chm`, `Source/WwiseSoundEngine_2022_1/**`, `Source/WwiseSoundEngine_2023_1/**`, `Source/WwiseSoundEngine_2024_1/**`, `Source/WwiseSoundEngine_Null/**`
 - **2차 상태:** `pdb` 정리 트랙(1회+2회) 완료.
 - **후속 검토(3차 후보):** `Source/WwiseSoundEngine_2022_1/**`, `Source/WwiseSoundEngine_2023_1/**` 등 구버전 모듈 정리는 D 별도 승인 후 진행.
-- **런타임 잔여 점검:** PIE 기준 Wwise 초기화 로그 확인 1회.
+- **최종 검증 완료 (C 검증, 2026-05-25):** Git 추적 상태/보존 무결성/Win64 빌드/Wwise 초기화 로그 조건 충족. CLI 자동 PIE 한계는 확인되었고 GUI PIE 1회에서 Error/Failed 없음 확인되어 One-shot Cleanup 최종 승인 완료.
 
 ---
 
