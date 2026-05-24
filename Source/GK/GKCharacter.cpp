@@ -12,35 +12,33 @@ AGKCharacter::AGKCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	GetCapsuleComponent()->InitCapsuleSize(42.0f, 96.0f);
-
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	UCharacterMovementComponent* Movement = GetCharacterMovement();
-	Movement->bOrientRotationToMovement = true;
-	Movement->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
-	Movement->JumpZVelocity = 500.0f;
-	Movement->AirControl = 0.35f;
-	Movement->MaxWalkSpeed = 500.0f;
-	Movement->MinAnalogWalkSpeed = 20.0f;
-	Movement->BrakingDecelerationWalking = 2000.0f;
-	Movement->BrakingDecelerationFalling = 1500.0f;
-
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f;
 	CameraBoom->bUsePawnControlRotation = true;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+
+	ApplyCharacterTuning();
+}
+
+void AGKCharacter::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	ApplyCharacterTuning();
 }
 
 void AGKCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ApplyCharacterTuning();
+	Stamina = MaxStamina;
 
 	if (!DefaultMappingContext) return;
 
@@ -96,4 +94,21 @@ void AGKCharacter::HandleLook(const FInputActionValue& Value)
 	const FVector2D Axis = Value.Get<FVector2D>();
 	AddControllerYawInput(Axis.X);
 	AddControllerPitchInput(Axis.Y);
+}
+
+void AGKCharacter::ApplyCharacterTuning()
+{
+	GetCapsuleComponent()->InitCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
+
+	UCharacterMovementComponent* Movement = GetCharacterMovement();
+	Movement->bOrientRotationToMovement = true;
+	Movement->RotationRate = FRotator(0.f, RotationRate, 0.f);
+	Movement->JumpZVelocity = JumpZVelocity;
+	Movement->AirControl = AirControl;
+	Movement->MaxWalkSpeed = MaxWalkSpeed;
+	Movement->MinAnalogWalkSpeed = MinAnalogWalkSpeed;
+	Movement->BrakingDecelerationWalking = BrakingDecelerationWalking;
+	Movement->BrakingDecelerationFalling = BrakingDecelerationFalling;
+
+	CameraBoom->TargetArmLength = CameraArmLength;
 }

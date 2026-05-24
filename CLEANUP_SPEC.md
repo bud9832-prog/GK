@@ -11,10 +11,11 @@
 
 ## 2. 1단계: 레거시 코드 및 에셋 청소 (Cleanup)
 
-**상태: 🔄 1차 삭제 완료 (2026-05-25, 에이전트 B)** — #2·#3·#4 삭제 실행됨. #1·#5 보류 유지. 빌드 검증은 엔진 설치 후.
+**상태: ✅ 1차 Cleanup 검증 완료 (2026-05-25, 에이전트 B/C)** — #2·#3·#4 삭제 실행, 코드 단 Cleanup 반영, `GKEditor Win64 Development` 빌드 성공. #1·#5 보류 유지.
 
-> **빌드 미검증** — UE 5.7 엔진 미설치. 실제 삭제 후 빌드 검증은 엔진 설치 이후에 수행한다.
+> **빌드 검증 완료** — UE 5.7 (`E:\UE_5.7`)에서 `.sln` 생성 및 `GKEditor Win64 Development` 빌드 성공 (2026-05-25).
 > **참조 분석 완료 (2026-05-25, 에이전트 A)** — 아래 후보 전체에 대해 유지 대상 파일(`Lvl_ThirdPerson.umap`, `BP_ThirdPersonCharacter`, `ABP_Unarmed`, `__ExternalActors__/**`) 에서 참조 0건 확인. 끊김 위험 없음.
+> **코드 단 Cleanup 완료 (2026-05-25, 에이전트 B/C)** — `ProjectName=Ashen Ossuary` 반영, `AGKCharacter` 캡슐·이동·카메라·스태미나 기본값을 `EditDefaultsOnly`로 외부화하고 `OnConstruction()`/`BeginPlay()`에서 적용.
 
 - 현재 프로젝트의 레포지토리를 전수 조사하여, '3인칭 근접 액션 RPG 기본 플레이어' 빌드와 무관한 레거시 시스템, 미사용 변수, 더미 컴포넌트를 삭제하거나 참조를 제거한다.
 - 컴파일 에러가 없는 상태를 유지하며, 베이스 캐릭터 클래스와 핵심 게임모드만 남긴다.
@@ -91,7 +92,7 @@
 
 - [x] C++ 게임 모듈(`Source/GK/`) 생성 — `AGKCharacter`, `AGKGameMode` 스켈레톤
 - [x] 오디오 훅 선언 (`AGKCharacter.h` — 호출부는 미구현)
-- [ ] UE 5.7 엔진 설치 및 C++ 빌드 검증
+- [x] UE 5.7 엔진 설치 및 C++ 빌드 검증 (`GKEditor Win64 Development` 성공)
 - [ ] KiHoon: 전투 기획 명세 (수치, 입력, 몽타주 경로)
 - [x] KiHoon: 1단계 Cleanup 삭제 대상 확정 (#2·#3·#4 삭제, #1·#5 보류)
 - [ ] KiHoon: Skill 2~5 및 Zone 레벨 세부 지시 (해당 작업 시)

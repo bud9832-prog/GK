@@ -213,9 +213,9 @@ TObjectPtr<UGKCombatConfig> CombatConfig;
 - `.cpp` 내부 매직 넘버로 기획 밸런스 결정
 - 기획 수치 변경을 위해 C++ 재컴파일을 요구하는 구조
 
-### 3-5. 현재 프로젝트 상태 (2025-05)
-- **엔진:** UE 5.7 — **설치·빌드 검증 대기 중** (미설치 시 C++·문서·Git 작업은 가능)
-- **C++ `Source/` 모듈:** `Source/GK/` — `AGKCharacter`, `AGKGameMode` 스켈레톤 + 오디오 훅 선언 완료
+### 3-5. 현재 프로젝트 상태 (2026-05)
+- **엔진:** UE 5.7 — 설치 완료, `GKEditor Win64 Development` 빌드 검증 완료 (2026-05-25)
+- **C++ `Source/` 모듈:** `Source/GK/` — `AGKCharacter`, `AGKGameMode` 스켈레톤 + 오디오 훅 선언 완료, 캐릭터 튜닝값 `EditDefaultsOnly` 외부화 완료
 - **레벨:** `Lvl_ThirdPerson` 1개 (Zone 1~3 분리 레벨은 추후 지시)
 - **입력:** Enhanced Input (`Content/Input/IMC_Default`)
 
@@ -223,9 +223,9 @@ TObjectPtr<UGKCombatConfig> CombatConfig;
 1. ~~지침·문서 통합~~ ✅
 2. ~~Git 설정 (`.gitignore`, `.gitattributes`)~~ ✅
 3. ~~C++ 모듈 스켈레톤 (`Source/GK/`)~~ ✅
-4. **UE 5.7 엔진 설치 → `.sln` 생성 → 빌드 검증** ← 현재
-5. **Cleanup** — KiHoon 삭제 대상 확정 후 (`CLEANUP_SPEC.md` §2)
-6. **게임플레이** — D 기획 검증 + 기획 명세 + Skill 트리거 (`§4` 보류 항목 해소 후)
+4. ~~UE 5.7 엔진 설치 → `.sln` 생성 → 빌드 검증~~ ✅
+5. **Cleanup** — 1차 에셋 삭제 및 코드 Cleanup 완료 (`CLEANUP_SPEC.md` §2, #1·#5 보류)
+6. **게임플레이** — D 기획 검증 + 기획 명세 + Skill 트리거 (`§4` 보류 항목 해소 후) ← 다음
 
 ---
 
@@ -238,17 +238,18 @@ TObjectPtr<UGKCombatConfig> CombatConfig;
 | :--- | :--- |
 | C++ 게임 모듈(`Source/GK/`) 스켈레톤 | `AGKCharacter`, `AGKGameMode`, 오디오 훅 선언 |
 | 지침·Git 설정 | `AI_AGENTS_GUIDE.md`, `.gitignore`, `.gitattributes` 등 |
+| UE 5.7 엔진 설치 및 C++ 빌드 검증 | `.sln` 생성, `GKEditor Win64 Development` 빌드 성공 |
+| 1차 Cleanup | Rifle/Pistol/Unarmed Attack 에셋 삭제, 코드 단 템플릿 잔재 및 튜닝값 외부화 |
 
 ### 보류 중
 | 항목 | 상태 |
 | :--- | :--- |
-| UE 5.7 엔진 설치 및 C++ 빌드 검증 | 엔진 설치 대기 |
 | Skill 2~5 상세 정의 및 트리거 명세 | 문서 추후 업데이트 예정 |
 | 콤보·회피·스테미나·히트스톱 수치 및 입력 바인딩 | 기획 명세 수령 후 |
 | 무기/회피/공격 애니메이션 몽타주 경로 | 아트 에셋 준비 중 |
 | 피지컬 머티리얼 6종 생성 및 Surface Type 매핑 | Skill 4 또는 별도 지시 후 |
 | Zone 1~3 레벨 구성 및 Spatial Audio 볼륨 배치 | 세부 구현 지시 후 |
-| 1단계 레거시 Cleanup 범위 (삭제 대상 목록) | 아트·기획 확정 후 별도 지시 |
+| Cleanup 보류분 | `Content/LevelPrototyping/`, `Content/Characters/Mannequins/Anims/Death/` — KiHoon 재결재 전 삭제 금지 |
 
 ---
 
