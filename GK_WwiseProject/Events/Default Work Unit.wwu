@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <WwiseDocument Type="WorkUnit" ID="{3203A769-E6FC-433F-9C16-D27403163160}" SchemaVersion="123">
 	<Events>
-		<WorkUnit Name="Default Work Unit" ID="{3203A769-E6FC-433F-9C16-D27403163160}" PersistMode="Standalone"/>
+		<WorkUnit Name="Default Work Unit" ID="{3203A769-E6FC-433F-9C16-D27403163160}" PersistMode="Standalone">
+			<ChildrenList>
+				<Event Name="Play_FX_Bird_Pipe_Chirp" ID="{9BFB33BC-C8B2-4504-B7B5-38DFA629E145}">
+					<ChildrenList>
+						<Action Name="" ID="{D02A0270-EEC2-4CFE-A56C-A2E2F7730E8B}" ShortID="176002923">
+							<ReferenceList>
+								<Reference Name="Target">
+									<ObjectRef Name="FX_Bird_Pipe_Chirp" ID="{0051DF2C-A62D-4CFE-8B41-4A323FE7C5E4}" WorkUnitID="{5430291C-AB21-4789-935B-DB087632EBE2}"/>
+								</Reference>
+							</ReferenceList>
+						</Action>
+					</ChildrenList>
+				</Event>
+			</ChildrenList>
+		</WorkUnit>
 	</Events>
 </WwiseDocument>

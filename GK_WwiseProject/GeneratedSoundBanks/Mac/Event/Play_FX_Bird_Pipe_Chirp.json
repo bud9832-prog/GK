@@ -1,0 +1,48 @@
+{
+ "SoundBanksInfo": {
+  "Platform": "Mac",
+  "BasePlatform": "Mac",
+  "SchemaVersion": "16",
+  "SoundBankVersion": "154",
+  "SoundBanks": [
+   {
+    "Id": "2832168144",
+    "Type": "Event",
+    "GUID": "{9BFB33BC-C8B2-4504-B7B5-38DFA629E145}",
+    "Language": "SFX",
+    "Hash": "{F705A831-A165-7A39-03C3-81B014BEDF1C}",
+    "ObjectPath": "Play_FX_Bird_Pipe_Chirp",
+    "ShortName": "Play_FX_Bird_Pipe_Chirp",
+    "Path": "Event/Play_FX_Bird_Pipe_Chirp.bnk",
+    "Media": [
+     {
+      "Id": "529458392",
+      "Language": "SFX",
+      "Streaming": "false",
+      "Location": "Loose",
+      "ShortName": "FX_Bird_Pipe_Chirp.wav",
+      "Path": "Media/529458392.wem",
+      "CachePath": "5B/{5B0CED4D-4D61-9419-B447-B5B6AD1D22C0}.wem"
+     }
+    ],
+    "Events": [
+     {
+      "Id": "2832168144",
+      "Name": "Play_FX_Bird_Pipe_Chirp",
+      "ObjectPath": "\\Events\\Default Work Unit\\Play_FX_Bird_Pipe_Chirp",
+      "GUID": "{9BFB33BC-C8B2-4504-B7B5-38DFA629E145}",
+      "DurationType": "OneShot",
+      "DurationMin": "10.683875",
+      "DurationMax": "10.683875",
+      "MediaRefs": [
+       {
+        "Id": "529458392"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "FileHash": "{CDAF2A01-2460-B169-953D-3B7B553D53D3}"
+ }
+}
