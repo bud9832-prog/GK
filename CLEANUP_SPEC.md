@@ -1,6 +1,6 @@
 # CLEANUP_SPEC.md - 레포지토리 정리 및 핵심 메카닉스 구현 명세서
 
-> **문서 우선순위:** `AI_AGENTS_GUIDE.md` §3·§4 > 본 문서. 클래스 명칭·보류 항목은 `AI_AGENTS_GUIDE.md`를 따릅니다.
+> **문서 우선순위:** `AI_AGENTS_GUIDE.md` §0·§2 > §3 > §4 > 본 문서.
 
 ## 1. 개요 및 목적
 - 본 프로젝트는 언리얼 엔진 5(UE5)와 Wwise를 연동한 3인칭 액션 RPG 'Ashen Ossuary' 테크니컬 오디오 포트폴리오 빌드를 목적으로 한다.
@@ -23,13 +23,13 @@
 | `Mannequins/Anims/Rifle`, `Pistol` | **원거리 전투 범위 아님** — 삭제 후보 |
 | `Mannequins/Anims/Unarmed/Attack/` | 임시 공격 모션. 무기 전용 애니 수령 후 교체 |
 | Wwise 플러그인·`/Content/WwiseAudio/` | **절대 삭제·수정 금지** |
-| `BP_ThirdPersonCharacter` | C++ `AGKCharacter` 도입 전까지 **유지** |
+| `BP_ThirdPersonCharacter` | `BP_GKCharacter` 전환 전까지 **유지** |
 
 ---
 
 ## 3. 2단계: 핵심 게임플레이 메카닉스 구현 (Core Mechanics)
 
-**상태: ⏸ C++ 모듈 생성 + KiHoon 기획 명세 수령 후**
+**상태: ⏸ KiHoon 기획 명세 수령 후** (C++ 모듈 `Source/GK/`는 완료)
 
 청소가 완료된 베이스 플레이어 클래스(`AGKCharacter` / `BP_GKCharacter`)에 아래 기능을 구현한다.
 

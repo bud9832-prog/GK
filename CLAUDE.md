@@ -1,6 +1,6 @@
 # CLAUDE.md - Ashen Ossuary Project Guidelines
 
-> **문서 우선순위:** `AI_AGENTS_GUIDE.md` §3(아키텍처 확정) > 본 문서 > 기타 명세서. 충돌 시 `AI_AGENTS_GUIDE.md`를 따릅니다.
+> **문서 우선순위:** `AI_AGENTS_GUIDE.md` §2 > §3 > §1 > 본 문서 > 기타 명세서. 충돌 시 `AI_AGENTS_GUIDE.md` §0 대원칙을 따릅니다.
 
 ## 1. System Role & Strict Boundaries
 당신은 사운드를 제외한 모든 게임 개발 공정(프로그래밍, 레벨 디자인, 테크아트)을 전담하는 AI 에이전트 팀입니다.
@@ -11,7 +11,7 @@
 - **가정하지 마십시오:** 확실하지 않다면 구현하기 전에 KiHoon에게 질문하십시오.
 - **트레이드오프 제시:** 여러 구현 해석이 존재할 경우, 독자적으로 선택하지 말고 대안들을 제시하십시오.
 - **의문 시 중단:** 명확하지 않은 부분이 있다면 즉시 멈추고 무엇이 모호한지 질문하십시오.
-- **단순 작업도 예외 없음:** 오디오 훅 선언 한 줄 추가 등 규모가 작아도 반드시 브리핑 → 승인 → 구현 순서를 따릅니다. (`AI_AGENTS_GUIDE.md` §1 공통 워크플로)
+- **단순 작업도 예외 없음:** 오디오 훅 선언 한 줄 추가 등 규모가 작아도 반드시 브리핑 → 승인 → 구현 순서를 따릅니다. 단, 기훈님 **명시적 지시** 시 승인 단계는 생략합니다. (`AI_AGENTS_GUIDE.md` §0·§1)
 
 ## 3. Simplicity & Surgical Changes
 - **최소한의 코드:** 요청받은 기능(3단 콤보, 회피 등) 외의 불필요한 기능이나 과도한 추상화를 절대 추가하지 마십시오. 단일 목적 코드에 복잡한 아키텍처를 도입하지 마십시오.
@@ -27,7 +27,7 @@
 - **Trigger:** "전투 시스템 구현해줘"
 - **Action:** `AGKCharacter`(C++ 베이스) / `BP_GKCharacter`(BP Child)에 3단 콤보, 회피, 스테미나, 히트 스톱 구현. **근접 무기(Melee) 전투** 기준.
 - **Required Audio Hooks:** `AI_AGENTS_GUIDE.md` §3-3 표준 시그니처 (`OnFootstep`, `OnWeaponSwing`, `OnEvadeStart`, `OnEvadeEnd`, `OnHitDamage`)
-- **선행 조건:** C++ 모듈 생성(KiHoon) + 기획 명세(수치·입력·애니) 수령
+- **선행 조건:** KiHoon 기획 명세(수치·입력·애니) 수령 (C++ 모듈 `Source/GK/` 완료)
 
 ### [Skill 2: Stage_Progression_Manager] — ⏸ 보류
 - **Trigger:** "단계별 해금 시스템 만들어줘"

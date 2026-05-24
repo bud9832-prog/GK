@@ -1,6 +1,21 @@
 # Ashen Ossuary - AI 에이전트 역할 분담 및 실행 지침서
 
-본 문서는 사운드 디자이너 KiHoon(사용자)과 협업하는 모든 AI 에이전트(Claude, Cursor Composer, o1/o3-mini)의 독립적인 역할과 실행 명령어(Trigger)를 명시합니다. **모든 에이전트는 본 지침과 `CLAUDE.md` 규칙을 반드시 상시 준수해야 하며, 문서 간 충돌 시 본 문서의 [§3 아키텍처 확정 사항]을 최우선으로 따릅니다.**
+본 문서는 사운드 디자이너 KiHoon(사용자)과 협업하는 모든 AI 에이전트(Claude, Cursor Composer, o1/o3-mini)의 독립적인 역할과 실행 명령어(Trigger)를 명시합니다. **모든 에이전트는 본 지침과 `CLAUDE.md` 규칙을 반드시 상시 준수해야 합니다.**
+
+**문서 간 충돌 시 우선순위:** §2(절대 금지) > §3(아키텍처 확정) > §1(워크플로·커밋·Honest Scope) > `CLAUDE.md` > `CLEANUP_SPEC.md` 등 기타 명세서
+
+---
+
+## 0. 대원칙 (Principle Hierarchy)
+
+| 순위 | 원칙 | 위치 | 요약 |
+| :---: | :--- | :--- | :--- |
+| 1 | **절대 금지** | §2 | 오디오/Wwise 에셋·`.wwu` 수정/삭제, 사운드 독자 결정 금지. **예외 없음.** |
+| 2 | **아키텍처 확정** | §3 | 클래스명, 오디오 훅 시그니처, 전투 방식. 코드·문서의 **단일 기준.** |
+| 3 | **공통 워크플로** | §1 | 브리핑→승인→구현→검증→(요청 시)커밋. Honest Scope·Git 커밋 규칙 포함. |
+| 4 | **보류·스킬** | §4·§5 | §4 보류 항목 및 미정의 Skill 2~5는 **명시적 지시 전 구현 금지.** |
+
+- **승인 생략 예외:** 기훈님이 「승인 없이」「바로 진행」등 **명시적으로 지시**한 경우 §1의 승인 단계만 생략합니다. §2·Honest Scope는 생략되지 않습니다.
 
 ---
 
@@ -67,10 +82,10 @@
 ### 3-1. 클래스 명명 및 상속 구조
 | 구분 | 확정 명칭 | 비고 |
 | :--- | :--- | :--- |
-| C++ 플레이어 베이스 | `AGKCharacter` | KiHoon이 C++ 모듈 생성 후 확정·안내 예정. 생성 전까지 임시 명칭. |
+| C++ 플레이어 베이스 | `AGKCharacter` | `Source/GK/` — 스켈레톤 생성 완료 |
 | 블루프린트 플레이어 | `BP_GKCharacter` | C++ 베이스 `AGKCharacter`의 Blueprint Child |
-| C++ 게임모드 베이스 | `AGKGameMode` | Stage 해금 등 GameMode 로직의 C++ 베이스 (모듈 생성 후) |
-| **현재 임시 에셋** | `BP_ThirdPersonCharacter` | UE Third Person BP 템플릿. C++ 모듈 도입 전까지 유지 |
+| C++ 게임모드 베이스 | `AGKGameMode` | `Source/GK/` — 스켈레톤 생성 완료 |
+| **현재 임시 에셋** | `BP_ThirdPersonCharacter` | `BP_GKCharacter` 전환 전까지 유지 |
 
 - 게임플레이 코어 로직은 **C++ 베이스 클래스**에 두고, KiHoon의 Wwise 매핑은 **Blueprint Child**에서 `BlueprintImplementableEvent` 오디오 훅으로 연결합니다.
 - ~~`AMyCharacter`~~, ~~`BP_PlayerCharacter`~~ 등 구 명칭은 **사용하지 않습니다**.
@@ -137,7 +152,7 @@ void OnHitDamage(FVector HitLocation, AActor* Attacker);
 - **구현 대상:** `AGKCharacter` (C++ 베이스) / `BP_GKCharacter` (Blueprint Child)
 - **구현 내용:** 소울라이크 스타일 3단 공격 콤보, 스테미나 소모/회복, 히트 스톱(Hit Stop), 회피(구르기)
 - **필수 오디오 훅:** §3-3 표준 시그니처 전부 (`OnFootstep` 포함)
-- **선행 조건:** C++ 모듈 생성 완료 + KiHoon 기획 명세(수치·입력·애니 경로) 수령
+- **선행 조건:** KiHoon 기획 명세(수치·입력·애니 경로) 수령 (C++ 모듈은 완료)
 
 ### 🔒 [Skill 2~5] — 정의 보류
 | Skill | 트리거 (예정) | 상태 |
