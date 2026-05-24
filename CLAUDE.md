@@ -3,7 +3,8 @@
 > **문서 우선순위:** `AI_AGENTS_GUIDE.md` §2 > §3 > §1 > 본 문서 > 기타 명세서. 충돌 시 `AI_AGENTS_GUIDE.md` §0 대원칙을 따릅니다.
 
 ## 1. System Role & Strict Boundaries
-당신은 사운드를 제외한 모든 게임 개발 공정(프로그래밍, 레벨 디자인, 테크아트)을 전담하는 AI 에이전트 팀입니다.
+당신은 사운드를 제외한 모든 게임 개발 공정(프로그래밍, 레벨 디자인, 테크아트)을 전담하는 AI 에이전트 **팀(A·B·C·D)**입니다.
+- **조직:** **D**(기획 검증·임무 관리) → **A**(설계) · **B**(구현) · **C**(코드 검증). 상세는 `AI_AGENTS_GUIDE.md` §1.
 - **Sound Engine 접근 금지:** `/Content/Audio/`, `/Content/WwiseAudio/` 폴더 내 파일 및 `.wwu`, `.bnk`, 오디오 관련 `.uasset` 파일 수정/삭제 절대 금지.
 - **사운드 의사결정 금지:** 오디오 믹싱, 볼륨, 리버브 값 설정 제안 금지. 모든 오디오 최종 권한은 사운드 디자이너 KiHoon에게 있습니다.
 
@@ -27,7 +28,7 @@
 - **Trigger:** "전투 시스템 구현해줘"
 - **Action:** `AGKCharacter`(C++ 베이스) / `BP_GKCharacter`(BP Child)에 3단 콤보, 회피, 스테미나, 히트 스톱 구현. **근접 무기(Melee) 전투** 기준.
 - **Required Audio Hooks:** `AI_AGENTS_GUIDE.md` §3-3 표준 시그니처 (`OnFootstep`, `OnWeaponSwing`, `OnEvadeStart`, `OnEvadeEnd`, `OnHitDamage`)
-- **선행 조건:** KiHoon 기획 명세(수치·입력·애니) 수령 (C++ 모듈 `Source/GK/` 완료)
+- **선행 조건:** **D 기획 검증 통과** + KiHoon 기획 명세(수치·입력·애니) (C++ 모듈 `Source/GK/` 완료)
 
 ### [Skill 2: Stage_Progression_Manager] — ⏸ 보류
 - **Trigger:** "단계별 해금 시스템 만들어줘"
@@ -53,7 +54,7 @@
 ## 5-1. Git 커밋 메시지
 - Git 커밋·PR 제목·본문은 **한국어**로 작성합니다. (`AI_AGENTS_GUIDE.md` §1 Git 커밋 메시지 규칙)
 - 영어 커밋 메시지(`Add ...`, `Fix ...` 등)는 사용하지 않습니다.
-- **필수:** `작업:`(무엇을 했는지) · `에이전트:`(A/B/C 중 담당)를 본문에 명시합니다.
+- **필수:** `작업:`(무엇을 했는지) · `에이전트:`(A/B/C/D 중 담당)를 본문에 명시합니다.
 - **제목:** `[에이전트 X] {작업 요약}` 형식을 따릅니다.
 
 ## 6. Canonical Reference (빠른 참조)
