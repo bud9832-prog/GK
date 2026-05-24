@@ -13,4 +13,14 @@ class GK_API AGKGameMode : public AGameModeBase
 
 public:
 	AGKGameMode();
+
+	// --- Stage Hooks (Skill 2 구현 대기 — 선언만, 로직 없음) ---
+	UPROPERTY(BlueprintReadOnly, Category = "Stage")
+	int32 CurrentStage = 1;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Stage")
+	void OnStageCleared(int32 StageNum);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Stage")
+	void OnSkillUnlocked(FName SkillName);
 };
