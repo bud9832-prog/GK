@@ -42,12 +42,10 @@
 | `Config/Windows/`, `Config/Default*.ini`의 Windows 런타임 필수 항목 | Win64 빌드 및 런타임 기준 설정 |
 
 ### 플랫폼 Config 정리 정책 (Windows-only)
-- 프로젝트 타깃은 Windows 단일이지만, 비Windows 플랫폼 ini는 플러그인(특히 Wwise) 또는 엔진이 생성·참조할 수 있으므로 **무조건 삭제하지 않는다.**
-- 아래 경로는 **2차 Cleanup 후보군**으로만 관리한다.
-  - `Config/Linux/`, `Config/Mac/`, `Config/Android/`, `Config/IOS/`, `Config/TVOS/`, `Config/VisionOS/`
-  - `Platforms/Android/Config/`
-- 실행 조건: D 영향도 검토 + KiHoon 결재 + Win64 재빌드 통과.
-- 원칙: "Windows 외 불필요해 보임"은 삭제 사유가 될 수 있으나, **단독 근거는 아님**(빌드·플러그인 연동 안전성 우선).
+- 프로젝트 타깃은 Windows 단일.
+- **Engine ini Cleanup 완료 (2026-05-25, 에이전트 B):** 비Windows `*Engine.ini` 7개 삭제 후 Win64 빌드 통과. 삭제로 비워진 `Config/Android/`, `Config/IOS/`, `Config/TVOS/`, `Config/VisionOS/`, `Config/LinuxArm64/` 빈 폴더 제거.
+- **유지 (Wwise 초기화·§2):** `Config/Linux/LinuxGame.ini`, `Config/Mac/MacGame.ini`, `Platforms/Android/Config/AndroidGame.ini`
+- **잔여 검토:** `Config/DefaultEngine.ini` 내 Linux/Mac TargetSettings, AndroidFileServer `SecurityToken` — KiHoon 별도 확인.
 
 ---
 
