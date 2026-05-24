@@ -42,12 +42,17 @@ void AGKCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (!DefaultMappingContext) return;
+
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
-			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		if (ULocalPlayer* LocalPlayer = PC->GetLocalPlayer())
 		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+				ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer))
+			{
+				Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			}
 		}
 	}
 }
@@ -59,10 +64,21 @@ void AGKCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (!EIC) return;
 
-	EIC->BindAction(MoveAction, ETriggerEvent::Triggered,  this, &AGKCharacter::HandleMove);
-	EIC->BindAction(LookAction, ETriggerEvent::Triggered,  this, &AGKCharacter::HandleLook);
-	EIC->BindAction(JumpAction, ETriggerEvent::Started,    this, &ACharacter::Jump);
-	EIC->BindAction(JumpAction, ETriggerEvent::Completed,  this, &ACharacter::StopJumping);
+	if (MoveAction)
+	{
+		EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AGKCharacter::HandleMove);
+	}
+
+	if (LookAction)
+	{
+		EIC->BindAction(LookAction, ETriggerEvent::Triggered, this, &AGKCharacter::HandleLook);
+	}
+
+	if (JumpAction)
+	{
+		EIC->BindAction(JumpAction, ETriggerEvent::Started,   this, &ACharacter::Jump);
+		EIC->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+	}
 }
 
 void AGKCharacter::HandleMove(const FInputActionValue& Value)
