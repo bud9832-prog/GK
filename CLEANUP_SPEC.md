@@ -47,6 +47,13 @@
 - **유지 (Wwise 초기화·§2):** `Config/Linux/LinuxGame.ini`, `Config/Mac/MacGame.ini`, `Platforms/Android/Config/AndroidGame.ini`
 - **잔여 검토:** `Config/DefaultEngine.ini` 내 Linux/Mac TargetSettings, AndroidFileServer `SecurityToken` — KiHoon 별도 확인.
 
+### Wwise 플러그인 Cleanup 진행 현황 (Windows-only, 2026-05-25)
+- **1차 완료/승인 (B 실행, C 검증):** `ThirdParty/WinGC_vc160/**`, `ThirdParty/WinGC_vc170/**`, 영문/일문/중문 `.chm` 삭제. Win64 빌드 통과.
+- **2차 1회 완료/승인 (B 실행, C 검증):** `ThirdParty/x64_vc160/**`, `ThirdParty/x64_vc170/Debug/**` 삭제. Win64 빌드 재현 성공, Error/Warning 0.
+- **유지 확정:** `ThirdParty/include/**`, `ThirdParty/x64_vc170/Profile(StaticCRT)/**`, `Wwise_UE_Integration_ko.chm`, `Source/WwiseSoundEngine_2022_1/**`, `Source/WwiseSoundEngine_2023_1/**`, `Source/WwiseSoundEngine_2024_1/**`, `Source/WwiseSoundEngine_Null/**`
+- **후속 승인 (2차 2회):** `x64_vc170`의 `Profile/Release/Debug(StaticCRT)` 내 `pdb` 정리 여부는 Debug 빌드 계획 확인 후 실행.
+- **런타임 잔여 점검:** PIE 기준 Wwise 초기화 로그 확인 1회.
+
 ---
 
 ## 3. 2단계: 핵심 게임플레이 메카닉스 구현 (Core Mechanics)
