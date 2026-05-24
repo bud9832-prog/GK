@@ -1,12 +1,14 @@
 # Ashen Ossuary: Technical Audio Portfolio Project
 
-**Tech Stack:** Unreal Engine 5.x (C++) | Wwise 2023.x
+**Tech Stack:** Unreal Engine 5.7 (C++ — 모듈 생성 예정) | Wwise 2023.x
 **Target Platform:** PC Windows (Strictly Windows Only)
+
+> **개발 상태:** 현재 Blueprint-only 템플릿(`BP_ThirdPersonCharacter`). C++ 모듈 및 게임플레이 구현은 KiHoon 기획 명세·모듈 생성 후 진행. 에이전트 지침은 `AI_AGENTS_GUIDE.md` 참조.
 
 ---
 
 ## 1. Project Overview
-**Ashen Ossuary(잿빛 묘실)**는 중세풍 황무지와 밀폐된 묘실을 배경으로 하는 소울라이크 스타일의 3인칭 액션 RPG 데모 프로젝트입니다. 
+**Ashen Ossuary(잿빛 묘실)**는 중세풍 황무지와 밀폐된 묘실을 배경으로 하는 소울라이크 스타일의 **근접 무기(Melee) 3인칭 액션 RPG** 데모 프로젝트입니다. 
 
 본 프로젝트는 단순한 게임 구현을 넘어, 대용량 오디오 데이터 처리, 시스템 자동화 파이프라인 구축, 런타임 하드웨어 최적화 등 **테크니컬 오디오 디자이너(Technical Audio Designer)**로서의 핵심 실무 역량을 증명하기 위해 구조화되었습니다.
 
@@ -24,7 +26,7 @@
 ## 2. Technical Audio Architecture
 
 ### C++ 기반 오디오 인터페이스 레이어 (Separation of Concerns)
-- 게임플레이 로직과 사운드 엔진 간의 결합도를 최소화하기 위해 플레이어 베이스 클래스를 C++로 설계했습니다.
+- 게임플레이 로직과 사운드 엔진 간의 결합도를 최소화하기 위해 플레이어 C++ 베이스 클래스(`AGKCharacter`)와 Blueprint Child(`BP_GKCharacter`)로 설계합니다. (C++ 모듈은 KiHoon 생성 예정)
 - 오디오 코드를 게임 로직에 하드코딩하지 않고, `UFUNCTION(BlueprintImplementableEvent)` 기반의 인터페이스 구멍(Audio Hook)을 정밀하게 뚫어두어 사운드 디자이너가 블루프린트에서 유연하게 Wwise 이벤트를 매핑할 수 있도록 아키텍처를 분리했습니다.
 
 ### 재질 기반 동적 사운드 시스템 (Surface-driven Audio)
