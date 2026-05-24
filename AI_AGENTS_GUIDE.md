@@ -119,7 +119,7 @@ A·B·C는 아래 **두 가지 판단** 중 하나를 스스로 선택합니다.
 - **에이전트 표기:**
   | 코드 | 역할 | 모델 |
   | :--- | :--- | :--- |
-  | **D** | 기획 검증 및 임무 관리자 | Claude 4.6 Sonnet / Opus |
+  | **D** | 기획 검증 및 임무 관리자 | Codex 5.3 |
   | **A** | 시스템 아키텍트 | Claude 3.5 / 4.6 Sonnet |
   | **B** | 정밀 수술식 구현가 | Cursor Composer (Agent Mode) |
   | **C** | 코드 검증 및 판사 | o1 / o3-mini |
@@ -238,6 +238,16 @@ TObjectPtr<UGKCombatConfig> CombatConfig;
 4. ~~UE 5.7 엔진 설치 → `.sln` 생성 → 빌드 검증~~ ✅
 5. **Cleanup** — 1차 에셋 삭제 및 코드 Cleanup 완료 (`CLEANUP_SPEC.md` §2, #1·#5 보류)
 6. **게임플레이** — D 기획 검증 + 기획 명세 + Skill 트리거 (`§4` 보류 항목 해소 후) ← 다음
+
+### 3-7. 플랫폼/Config 정리 정책 (Windows Only 운영 기준)
+- **타깃 플랫폼 확정:** 런타임 타깃은 Windows 단일(`Win64`)이다.
+- **중요:** `Config/<Platform>/`, `Platforms/<Platform>/Config/`의 비Windows 파일은 "타깃 외"이지만, 플러그인/엔진이 생성·참조할 수 있으므로 **자동 삭제 금지**.
+- **정리 분류 기준 (A·B·C 공통):**
+  1. **즉시 유지:** Windows 런타임/빌드에 직접 사용되는 설정
+  2. **삭제 후보:** Linux/Mac/Android/IOS/TVOS/VisionOS 등 타깃 외 플랫폼 설정 파일
+  3. **삭제 금지:** 오디오/Wwise 절대 금지 범위(§2)
+- **실행 절차:** 삭제 후보는 D가 영향도(자동 재생성 여부, Default*.ini 참조, 빌드 리스크) 검토 후 KiHoon 결재를 받아 일괄 정리한다.
+- **검증:** 플랫폼 Config 정리 커밋은 `GKEditor Win64 Development` 재빌드 결과를 함께 보고한다.
 
 ---
 

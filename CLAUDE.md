@@ -64,4 +64,5 @@
 - **C++ 모듈:** `Source/GK/` (`AGKCharacter`, `AGKGameMode`)
 - **기획 변수:** Data Asset·테이블·에디터 — `AI_AGENTS_GUIDE.md` §3-4
 - **보류 항목 전체:** `AI_AGENTS_GUIDE.md` §4
-- **부트스트랩 순서:** `AI_AGENTS_GUIDE.md` §3-6 (현재 4단계 — 엔진 설치·빌드)
+- **부트스트랩 순서:** `AI_AGENTS_GUIDE.md` §3-6 (현재 6단계 — 게임플레이 기획 검증 대기)
+- **플랫폼 Config 정책:** `AI_AGENTS_GUIDE.md` §3-7 (Windows-only, 비Windows Config 자동 삭제 금지)

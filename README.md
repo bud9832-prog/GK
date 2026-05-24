@@ -3,7 +3,7 @@
 **Tech Stack:** Unreal Engine 5.7 (C++) | Wwise 2023.x
 **Target Platform:** PC Windows (Strictly Windows Only)
 
-> **개발 상태:** 부트스트랩 1~3단계 완료(지침·Git·C++ 스켈레톤). **4단계: UE 5.7 설치·빌드 대기.** Cleanup·게임플레이는 KiHoon 지시 후. 상세 순서는 `AI_AGENTS_GUIDE.md` §3-5.
+> **개발 상태:** 부트스트랩 1~5단계 완료(지침·Git·C++ 스켈레톤·UE 5.7 빌드 검증·1차 Cleanup). 현재는 **게임플레이 기획 검증/명세 수령 대기** 단계입니다. 상세 순서는 `AI_AGENTS_GUIDE.md` §3-6.
 
 ---
 
@@ -61,3 +61,9 @@
 ## Credits
 - **Technical Audio Design & Implementation:** KiHoon
 - **System Programming & Level Design:** AI Agent (Non-Audio Team)
+
+---
+
+## 운영 메모 (2026-05)
+- **플랫폼 정책:** 타깃은 Windows 단일(Win64).
+- **Config 정리 원칙:** 비Windows 플랫폼 ini는 "삭제 후보"이며 자동 삭제하지 않습니다. D 검증 + KiHoon 결재 + Win64 재빌드 통과 후 정리합니다.
