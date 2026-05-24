@@ -77,7 +77,7 @@ void OnHitDamage(FVector HitLocation, AActor* Attacker);
 
 ### 3-4. 현재 프로젝트 상태 (2025-05)
 - **엔진:** UE 5.7
-- **C++ `Source/` 모듈:** 아직 없음 (Blueprint-only). KiHoon이 모듈 생성 후 AI 에이전트에 안내 예정.
+- **C++ `Source/` 모듈:** `Source/GK/` — `AGKCharacter`, `AGKGameMode` 스켈레톤. 에디터에서 `.sln` 생성 후 빌드 필요.
 - **레벨:** `Lvl_ThirdPerson` 1개 (Zone 1~3 분리 레벨은 추후 지시)
 - **입력:** Enhanced Input (`Content/Input/IMC_Default`)
 
@@ -89,7 +89,7 @@ void OnHitDamage(FVector HitLocation, AActor* Attacker);
 
 | 항목 | 상태 |
 | :--- | :--- |
-| C++ 게임 모듈(`Source/GK/`) 생성 | KiHoon이 생성 후 안내 예정 |
+| C++ 게임 모듈(`Source/GK/`) 생성 | **완료** — `AGKCharacter`, `AGKGameMode` 스켈레톤 |
 | Skill 2~5 상세 정의 및 트리거 명세 | 문서 추후 업데이트 예정 |
 | 콤보·회피·스테미나·히트스톱 수치 및 입력 바인딩 | 기획 명세 수령 후 |
 | 무기/회피/공격 애니메이션 몽타주 경로 | 아트 에셋 준비 중 |

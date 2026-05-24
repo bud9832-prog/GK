@@ -2,7 +2,14 @@
 	"FileVersion": 3,
 	"EngineAssociation": "5.7",
 	"Category": "",
-	"Description": "",
+	"Description": "Ashen Ossuary - Technical Audio Portfolio",
+	"Modules": [
+		{
+			"Name": "GK",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
 	"Plugins": [
 		{
 			"Name": "ModelingToolsEditorMode",

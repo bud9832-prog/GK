@@ -52,5 +52,5 @@
 ## 6. Canonical Reference (빠른 참조)
 - **플레이어 클래스:** `AGKCharacter` → `BP_GKCharacter` (현재 임시: `BP_ThirdPersonCharacter`)
 - **전투:** 근접 무기(Melee)
-- **C++ 모듈:** KiHoon 생성·안내 대기
+- **C++ 모듈:** `Source/GK/` (`AGKCharacter`, `AGKGameMode`)
 - **보류 항목 전체:** `AI_AGENTS_GUIDE.md` §4

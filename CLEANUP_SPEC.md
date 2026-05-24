@@ -68,7 +68,7 @@
 
 아래가 충족되기 전 2~4단계 구현에 착수하지 않는다.
 
-- [ ] KiHoon: C++ 게임 모듈(`Source/GK/`) 생성 및 AI 에이전트 안내
+- [x] C++ 게임 모듈(`Source/GK/`) 생성 — `AGKCharacter`, `AGKGameMode` 스켈레톤
 - [ ] KiHoon: 전투 기획 명세 (수치, 입력, 몽타주 경로)
 - [ ] KiHoon: 1단계 Cleanup 삭제 대상 확정
 - [ ] KiHoon: Skill 2~5 및 Zone 레벨 세부 지시 (해당 작업 시)
