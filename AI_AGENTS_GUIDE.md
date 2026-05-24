@@ -176,13 +176,50 @@ void OnHitDamage(FVector HitLocation, AActor* Attacker);
 - `OnHitDamage`의 `Attacker` 인자는 **필수**입니다. (구버전 `FVector` 단독 시그니처 폐기)
 - `OnFootstep`의 Surface 감지는 C++에서 Line Trace 처리, Wwise Switch 매핑은 Blueprint(KiHoon)에서 처리합니다.
 
-### 3-4. 현재 프로젝트 상태 (2025-05)
+### 3-4. 기획 변수 — 데이터 주도 (Data-Driven, 에디터·테이블)
+통상적인 게임 개발 관행에 따라, **기획·밸런스·튜닝 수치는 C++에 하드코딩하지 않습니다.** 로직은 C++에, **값은 에디터·데이터 에셋·테이블**에 둡니다.
+
+**원칙**
+- C++: 상태 전이, 입력 처리, 공식 **로직**만 작성. `0.4f`, `100.f` 같은 기획 상수를 `.cpp`에 박지 않습니다.
+- 기획 변수: **에디터 노출** 또는 **Data Asset / Data Table**에서 읽어 적용합니다.
+- KiHoon·기획자는 **언리얼 에디터에서 재컴파일 없이** 수치를 조정할 수 있어야 합니다.
+
+**적용 계층 (우선순위)**
+
+| 계층 | 용도 | UE 수단 | 예시 |
+| :--- | :--- | :--- | :--- |
+| **1. Data Asset** | 캐릭터·전투 밸런스 묶음 | `UPrimaryDataAsset` (`UGKCombatConfig` 등) | 스테미나 최대/회복, 콤보 윈도우, i-frame, 히트 스톱 |
+| **2. Data Table** | 다행·다단계·스테이지별 표 | `UDataTable` + `FTableRowBase` 파생 구조체 | 스테이지별 적 스폰, 스킬 해금 조건 (Skill 2) |
+| **3. 에디터 프로퍼티** | 개별 BP·액터 오버라이드 | `UPROPERTY(EditDefaultsOnly` / `EditAnywhere`, `BlueprintReadOnly`) | 몽타주 참조, Input Action, Data Asset 슬롯 |
+| **4. Curve Table** | 레벨·시간에 따른 보간 | `UCurveTable` | (필요 시) 회복률 곡선 |
+
+**기획 변수 예시 (Skill 1 범위 — Data Asset 또는 EditDefaultsOnly로 외부화)**
+- 스테미나: 최대값, 회복 속도, 공격/회피별 소모량
+- 콤보: 입력 윈도우(초), 리셋 시간, 몽타주 `UAnimMontage*` 참조
+- 회피: i-frame 지속 시간, 구르기 속도, 스테미나 소모
+- 히트 스톱: 지속 시간, 적용 대상 플래그
+- 이동: `MaxWalkSpeed` 등 — `CharacterMovement` 또는 Config에서 주입
+
+**구현 패턴 (Skill 1·B 구현 시 준수)**
+```cpp
+// C++ — Config 참조만. 수치는 에셋·에디터에서.
+UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Config")
+TObjectPtr<UGKCombatConfig> CombatConfig;
+```
+- `BP_GKCharacter`에서 Config Data Asset 할당·오버라이드.
+- Audio Hook(`BlueprintImplementableEvent`)과 **별개** — 훅은 이벤트 구멍, 수치는 Config.
+
+**금지**
+- `.cpp` 내부 매직 넘버로 기획 밸런스 결정
+- 기획 수치 변경을 위해 C++ 재컴파일을 요구하는 구조
+
+### 3-5. 현재 프로젝트 상태 (2025-05)
 - **엔진:** UE 5.7 — **설치·빌드 검증 대기 중** (미설치 시 C++·문서·Git 작업은 가능)
 - **C++ `Source/` 모듈:** `Source/GK/` — `AGKCharacter`, `AGKGameMode` 스켈레톤 + 오디오 훅 선언 완료
 - **레벨:** `Lvl_ThirdPerson` 1개 (Zone 1~3 분리 레벨은 추후 지시)
 - **입력:** Enhanced Input (`Content/Input/IMC_Default`)
 
-### 3-5. 프로젝트 부트스트랩 순서 (확정된 진행 순서)
+### 3-6. 프로젝트 부트스트랩 순서 (확정된 진행 순서)
 1. ~~지침·문서 통합~~ ✅
 2. ~~Git 설정 (`.gitignore`, `.gitattributes`)~~ ✅
 3. ~~C++ 모듈 스켈레톤 (`Source/GK/`)~~ ✅
@@ -225,6 +262,7 @@ void OnHitDamage(FVector HitLocation, AActor* Attacker);
 - **트리거 문장:** `전투 시스템 구현해줘`
 - **구현 대상:** `AGKCharacter` (C++ 베이스) / `BP_GKCharacter` (Blueprint Child)
 - **구현 내용:** 소울라이크 스타일 3단 공격 콤보, 스테미나 소모/회복, 히트 스톱(Hit Stop), 회피(구르기)
+- **데이터 주도:** 기획 수치는 `§3-4` — `UGKCombatConfig`(Data Asset) 또는 EditDefaultsOnly. C++ 하드코딩 금지.
 - **필수 오디오 훅:** §3-3 표준 시그니처 전부 (`OnFootstep` 포함)
 - **선행 조건:** **D 기획 검증 통과** + KiHoon 기획 명세(수치·입력·애니 경로) (C++ 모듈은 완료)
 

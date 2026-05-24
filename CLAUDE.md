@@ -18,6 +18,7 @@
 - **최소한의 코드:** 요청받은 기능(3단 콤보, 회피 등) 외의 불필요한 기능이나 과도한 추상화를 절대 추가하지 마십시오. 단일 목적 코드에 복잡한 아키텍처를 도입하지 마십시오.
 - **정밀한 수정 (Surgical):** 건드려야 하는 파일과 로직만 수정하십시오. 망가지지 않은 인접 코드를 임의로 리팩토링하거나 개선하지 마십시오. 기존 스타일을 철저히 따르십시오.
 - **오디오 훅(Hook) 강제:** 모든 핵심 액션 로직 구현 시, 사운드가 끼어들 수 있는 '구멍(Interface/Event)'만 정밀하게 뚫어놓고 내부 구현은 비워두십시오.
+- **기획 변수 외부화:** 스테미나·콤보·회피·히트 스톱 등 밸런스 수치는 C++ 하드코딩 금지. Data Asset·Data Table·EditDefaultsOnly로 에디터·테이블에서 조정. (`AI_AGENTS_GUIDE.md` §3-4)
 - **작업 분량 (Honest Scope):** 일이 없는데 있는 척 부풀리지 말고, 실제로 필요한 일은 간단하다며 빼지 마십시오. (`AI_AGENTS_GUIDE.md` §1 작업 분량 원칙)
 
 ## 4. Operational Skills (Trigger Commands)
@@ -26,7 +27,7 @@
 
 ### [Skill 1: Combat_System_Builder] — 정의 확정, 구현은 기획 명세 후
 - **Trigger:** "전투 시스템 구현해줘"
-- **Action:** `AGKCharacter`(C++ 베이스) / `BP_GKCharacter`(BP Child)에 3단 콤보, 회피, 스테미나, 히트 스톱 구현. **근접 무기(Melee) 전투** 기준.
+- **Action:** `AGKCharacter`(C++ 베이스) / `BP_GKCharacter`(BP Child)에 3단 콤보, 회피, 스테미나, 히트 스톱 구현. **근접 무기(Melee) 전투** 기준. 기획 수치는 `UGKCombatConfig` 등 Data Asset·에디터 노출 (`§3-4`).
 - **Required Audio Hooks:** `AI_AGENTS_GUIDE.md` §3-3 표준 시그니처 (`OnFootstep`, `OnWeaponSwing`, `OnEvadeStart`, `OnEvadeEnd`, `OnHitDamage`)
 - **선행 조건:** **D 기획 검증 통과** + KiHoon 기획 명세(수치·입력·애니) (C++ 모듈 `Source/GK/` 완료)
 
@@ -61,5 +62,6 @@
 - **플레이어 클래스:** `AGKCharacter` → `BP_GKCharacter` (현재 임시: `BP_ThirdPersonCharacter`)
 - **전투:** 근접 무기(Melee)
 - **C++ 모듈:** `Source/GK/` (`AGKCharacter`, `AGKGameMode`)
+- **기획 변수:** Data Asset·테이블·에디터 — `AI_AGENTS_GUIDE.md` §3-4
 - **보류 항목 전체:** `AI_AGENTS_GUIDE.md` §4
-- **부트스트랩 순서:** `AI_AGENTS_GUIDE.md` §3-5 (현재 4단계 — 엔진 설치·빌드)
+- **부트스트랩 순서:** `AI_AGENTS_GUIDE.md` §3-6 (현재 4단계 — 엔진 설치·빌드)
