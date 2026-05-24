@@ -35,7 +35,7 @@ public:
 	void OnFootstep(EPhysicalSurface SurfaceType);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Audio|Combat")
-	void OnWeaponSwing(int32 ComboIndex);
+	void OnWeaponSwing(int32 InComboIndex);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Audio|Combat")
 	void OnEvadeStart();
