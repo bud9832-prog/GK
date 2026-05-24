@@ -157,6 +157,11 @@ P·A·B·C는 아래 **두 가지 판단** 중 하나를 스스로 선택합니�
 - **줄이지 마십시오:** 컴파일 깨짐, 참조 끊김, 실제 버그·누락이 있으면 「간단하다」는 이유로 생략·미루지 않습니다.
 - **기준:** diff와 리스크가 말하는 분량 = 보고·구현·검증하는 분량.
 
+### Git 운영 주의 (Config 자동 재생성)
+- UE 에디터 또는 Wwise Authoring 실행 시 `Config/` 하위 비Windows `*Engine.ini`가 자동 재생성될 수 있습니다.
+- D/B는 클린업 작업에서 `git add -A`, `git add .`를 사용하지 않습니다.
+- 커밋 전 `git status`로 비Windows Config 재추적 여부를 반드시 확인하고, 정책상 제외 대상은 `git rm --cached` + `.gitignore`로 처리합니다.
+
 ---
 
 ## 2. 에이전트 공통 절대 금지 사항 (Strict Prohibitions)
