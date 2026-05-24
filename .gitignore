@@ -126,3 +126,13 @@ Config/DefaultEditorPerProjectUserSettings.ini
 Releases/
 Packaged/
 *.pak
+
+# Non-Windows platform Engine configs (Windows-only project)
+# UE/Wwise auto-regenerates these on editor open — keep ignored, not tracked
+Config/Android/AndroidEngine.ini
+Config/IOS/IOSEngine.ini
+Config/Linux/LinuxEngine.ini
+Config/LinuxArm64/
+Config/Mac/MacEngine.ini
+Config/TVOS/
+Config/VisionOS/
