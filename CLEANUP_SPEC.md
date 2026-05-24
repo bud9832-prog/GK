@@ -48,6 +48,8 @@
 
 ## 4. 3단계: 테크니컬 오디오 인터페이스 설계 (Audio Interface Holes)
 
+**상태:** 훅 **선언** 완료 (`AGKCharacter.h`) — 호출부·Line Trace·노티파이 연동은 Skill 1 / Cleanup 후
+
 **[중요]** 게임플레이 로직 내부에 Wwise 재생 코드를 직접 하드코딩하지 않는다. 각 액션 타이밍에 호출되는 **오디오 전용 인터페이스(구멍)**만 C++에 선언하고, 내부 구현은 비워둔다. Wwise 매핑은 KiHoon이 Blueprint에서 처리한다.
 
 ### 4-1. 표준 오디오 훅 목록
@@ -69,6 +71,8 @@
 아래가 충족되기 전 2~4단계 구현에 착수하지 않는다.
 
 - [x] C++ 게임 모듈(`Source/GK/`) 생성 — `AGKCharacter`, `AGKGameMode` 스켈레톤
+- [x] 오디오 훅 선언 (`AGKCharacter.h` — 호출부는 미구현)
+- [ ] UE 5.7 엔진 설치 및 C++ 빌드 검증
 - [ ] KiHoon: 전투 기획 명세 (수치, 입력, 몽타주 경로)
 - [ ] KiHoon: 1단계 Cleanup 삭제 대상 확정
 - [ ] KiHoon: Skill 2~5 및 Zone 레벨 세부 지시 (해당 작업 시)

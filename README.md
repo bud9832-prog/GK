@@ -3,7 +3,7 @@
 **Tech Stack:** Unreal Engine 5.7 (C++) | Wwise 2023.x
 **Target Platform:** PC Windows (Strictly Windows Only)
 
-> **개발 상태:** `Source/GK/` C++ 스켈레톤(`AGKCharacter`, `AGKGameMode`) 생성 완료. 게임플레이·Cleanup은 KiHoon 기획 명세·지시 후 진행. 에이전트 지침은 `AI_AGENTS_GUIDE.md` 참조.
+> **개발 상태:** 부트스트랩 1~3단계 완료(지침·Git·C++ 스켈레톤). **4단계: UE 5.7 설치·빌드 대기.** Cleanup·게임플레이는 KiHoon 지시 후. 상세 순서는 `AI_AGENTS_GUIDE.md` §3-5.
 
 ---
 
