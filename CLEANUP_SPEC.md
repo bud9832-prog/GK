@@ -11,19 +11,33 @@
 
 ## 2. 1단계: 레거시 코드 및 에셋 청소 (Cleanup)
 
-**상태: ⏸ KiHoon 별도 지시 대기**
+**상태: 🔄 1차 삭제 완료 (2026-05-25, 에이전트 B)** — #2·#3·#4 삭제 실행됨. #1·#5 보류 유지. 빌드 검증은 엔진 설치 후.
+
+> **빌드 미검증** — UE 5.7 엔진 미설치. 실제 삭제 후 빌드 검증은 엔진 설치 이후에 수행한다.
+> **참조 분석 완료 (2026-05-25, 에이전트 A)** — 아래 후보 전체에 대해 유지 대상 파일(`Lvl_ThirdPerson.umap`, `BP_ThirdPersonCharacter`, `ABP_Unarmed`, `__ExternalActors__/**`) 에서 참조 0건 확인. 끊김 위험 없음.
 
 - 현재 프로젝트의 레포지토리를 전수 조사하여, '3인칭 근접 액션 RPG 기본 플레이어' 빌드와 무관한 레거시 시스템, 미사용 변수, 더미 컴포넌트를 삭제하거나 참조를 제거한다.
 - 컴파일 에러가 없는 상태를 유지하며, 베이스 캐릭터 클래스와 핵심 게임모드만 남긴다.
 
-### 청소 시 참고 (삭제 여부는 KiHoon 확정 후)
-| 대상 | 판단 기준 |
+### 청소 후보 결재 표 (KiHoon 확정 항목에 체크)
+
+| # | 대상 경로 | 파일 수 | 용량 | 삭제 근거 | 위험도 | KiHoon 결재 |
+| :-: | :--- | ---: | ---: | :--- | :---: | :--- |
+| 1 | `Content/LevelPrototyping/` | 29 | 2.9 MB | 근접 전투 데모와 무관한 프로토타이핑 도구(JumpPad, Door, WobbleTarget, 그리드 재질). 유지 대상에서 참조 없음 | 🟢 낮음 | `[ ] 삭제` `[V] 보류` `[ ] 제외` |
+| 2 | `Content/Characters/Mannequins/Anims/Rifle/` | 39 | 14.2 MB | **원거리 전투 범위 아님** (§3-2 Melee 전용 확정). Walk·Jog·Aim·Fire 등 소총 전용 모션 전체. 참조 없음 | 🟢 낮음 | ✅ **삭제 완료** |
+| 3 | `Content/Characters/Mannequins/Anims/Pistol/` | 29 | 12.8 MB | **원거리 전투 범위 아님** (§3-2). 권총 전용 모션 전체. 참조 없음 | 🟢 낮음 | ✅ **삭제 완료** |
+| 4 | `Content/Characters/Mannequins/Anims/Unarmed/Attack/` | 4 | 3.5 MB | 임시 맨손 공격 모션 (`MM_Attack_01~03`, `MM_ChargedAttack`). 무기 전용 애니 수령 후 교체 예정. `ABP_Unarmed`에서 참조 없음 확인 | 🟡 중간 | ✅ **삭제 완료** |
+| 5 | `Content/Characters/Mannequins/Anims/Death/` | 6 | 1.8 MB | 맨손 사망 모션 (`MM_Death_*`). 무기 전용 사망 애니 수령 후 교체 예정. 유지 대상 참조 없음 | 🟡 중간 | `[ ] 삭제` `[V] 보류` `[ ] 제외` |
+
+> **#4·#5 위험도 중간 이유:** `ABP_Unarmed`(Unarmed 로코모션 레이어)와 같은 폴더 계층에 있어 향후 신규 ABP 제작 시 모션 원본 필요 여부를 KiHoon(아트·애니메이션 관리자)이 판단해야 함. 텍스트 참조 기준으로는 안전.
+
+### 절대 유지 대상 (결재 불필요)
+| 대상 | 이유 |
 | :--- | :--- |
-| `Content/LevelPrototyping/` (JumpPad, Door 등) | 근접 전투 데모와 무관하면 삭제 후보 |
-| `Mannequins/Anims/Rifle`, `Pistol` | **원거리 전투 범위 아님** — 삭제 후보 |
-| `Mannequins/Anims/Unarmed/Attack/` | 임시 공격 모션. 무기 전용 애니 수령 후 교체 |
-| Wwise 플러그인·`/Content/WwiseAudio/` | **절대 삭제·수정 금지** |
-| `BP_ThirdPersonCharacter` | `BP_GKCharacter` 전환 전까지 **유지** |
+| Wwise 플러그인·`Content/WwiseAudio/`·`GK_WwiseProject/` | §2 절대 금지 — KiHoon 소유, AI 수정 금지 |
+| `Content/ThirdPerson/Blueprints/BP_ThirdPersonCharacter` | `BP_GKCharacter` 전환 전까지 유지 (§3-1) |
+| `Content/Characters/Mannequins/Anims/Unarmed/` (Attack/ 제외) | 현재 플레이어 로코모션(`ABP_Unarmed`, 이동 모션) 사용 중 |
+| `Content/Input/` | Enhanced Input (`IMC_Default`, `IA_*`) — 플레이어 입력 핵심 |
 
 ---
 
@@ -79,5 +93,5 @@
 - [x] 오디오 훅 선언 (`AGKCharacter.h` — 호출부는 미구현)
 - [ ] UE 5.7 엔진 설치 및 C++ 빌드 검증
 - [ ] KiHoon: 전투 기획 명세 (수치, 입력, 몽타주 경로)
-- [ ] KiHoon: 1단계 Cleanup 삭제 대상 확정
+- [x] KiHoon: 1단계 Cleanup 삭제 대상 확정 (#2·#3·#4 삭제, #1·#5 보류)
 - [ ] KiHoon: Skill 2~5 및 Zone 레벨 세부 지시 (해당 작업 시)
