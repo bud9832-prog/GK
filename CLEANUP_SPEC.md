@@ -50,8 +50,10 @@
 ### Wwise 플러그인 Cleanup 진행 현황 (Windows-only, 2026-05-25)
 - **1차 완료/승인 (B 실행, C 검증):** `ThirdParty/WinGC_vc160/**`, `ThirdParty/WinGC_vc170/**`, 영문/일문/중문 `.chm` 삭제. Win64 빌드 통과.
 - **2차 1회 완료/승인 (B 실행, C 검증):** `ThirdParty/x64_vc160/**`, `ThirdParty/x64_vc170/Debug/**` 삭제. Win64 빌드 재현 성공, Error/Warning 0.
+- **2차 2회 완료/승인 (B 실행, C 검증):** `ThirdParty/x64_vc170/Profile/**`, `Release/**`, `Debug(StaticCRT)/**` 내 `pdb` 158개 삭제. Win64 빌드 재현 성공, Error/Warning 0.
 - **유지 확정:** `ThirdParty/include/**`, `ThirdParty/x64_vc170/Profile(StaticCRT)/**`, `Wwise_UE_Integration_ko.chm`, `Source/WwiseSoundEngine_2022_1/**`, `Source/WwiseSoundEngine_2023_1/**`, `Source/WwiseSoundEngine_2024_1/**`, `Source/WwiseSoundEngine_Null/**`
-- **후속 승인 (2차 2회):** `x64_vc170`의 `Profile/Release/Debug(StaticCRT)` 내 `pdb` 정리 여부는 Debug 빌드 계획 확인 후 실행.
+- **2차 상태:** `pdb` 정리 트랙(1회+2회) 완료.
+- **후속 검토(3차 후보):** `Source/WwiseSoundEngine_2022_1/**`, `Source/WwiseSoundEngine_2023_1/**` 등 구버전 모듈 정리는 D 별도 승인 후 진행.
 - **런타임 잔여 점검:** PIE 기준 Wwise 초기화 로그 확인 1회.
 
 ---
