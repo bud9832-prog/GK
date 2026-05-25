@@ -7,7 +7,7 @@
 | 피처 | 상태 | 완료일 | 담당 | 검증 | 핵심 결과 |
 | :--- | :---: | :---: | :--- | :--- | :--- |
 | Cleanup (엔진 코드/설정/플러그인 정리) | ✅ 완료 | 2026-05-25 | B/C 검증, D 승인 | Win64 빌드 + PIE/Wwise 초기화 로그 통과 | One-shot 포함 최종 승인 완료, 비Windows Engine.ini 재추적 해소, 불필요 pdb untrack 완료 |
-| Wwise 플러그인 정리 (1차~2차) | ✅ 완료 | 2026-05-25 | B/C 검증, D 승인 | Win64 빌드 재현 성공, Error/Warning 0 | WinGC/StaticCRT 대상 정리 및 추적 상태 정상화, 필수 include/lib 및 핵심 모듈 보존 |
+| Wwise 플러그인 정리 (1차~3차) | ✅ 완료 | 2026-05-25 | B/C 검증, D 승인 | Win64 빌드 재현 성공, Error/Warning 0, PIE/Wwise 초기화 통과 | WinGC/StaticCRT 정리 + 구버전 모듈(2022_1/2023_1) 제거 완료, 최신 2024_1+Null 체인 유지 |
 
 ## 2) 진행 예정 피처
 
@@ -21,7 +21,6 @@
 | :--- | :---: | :--- |
 | `Content/LevelPrototyping/` 정리 | 보류 | KiHoon 재결재 필요 |
 | `Content/Characters/Mannequins/Anims/Death/` 정리 | 보류 | 무기 전용 사망 애니 확정 후 결정 |
-| Wwise 구버전 모듈 (`Source/WwiseSoundEngine_2022_1`, `2023_1`) | 보류 | Build.cs 의존성으로 즉시 삭제 불가, D 별도 승인 필요 |
 
 ## 4) 업데이트 규칙
 

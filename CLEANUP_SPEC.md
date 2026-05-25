@@ -52,9 +52,11 @@
 - **2차 1회 완료/승인 (B 실행, C 검증):** `ThirdParty/x64_vc160/**`, `ThirdParty/x64_vc170/Debug/**` 삭제. Win64 빌드 재현 성공, Error/Warning 0.
 - **2차 2회 완료/승인 (B 실행, C 검증):** `ThirdParty/x64_vc170/Profile/**`, `Release/**`, `Debug(StaticCRT)/**` 내 `pdb` 158개 삭제. Win64 빌드 재현 성공, Error/Warning 0.
 - **One-shot 완료/승인 (B 실행, C 검증):** `b942f5e`에서 재추적된 비Windows `*Engine.ini` 7개 재삭제 + `.gitignore` 재오염 방지 규칙 추가 + `x64_vc170 Profile(StaticCRT)/Release(StaticCRT)`의 `pdb` 69개 `git rm --cached` untrack 완료. Win64 빌드/PIE/Wwise 초기화 로그 통과.
-- **유지 확정:** `ThirdParty/include/**`, `ThirdParty/x64_vc170/Profile(StaticCRT)/**`, `Wwise_UE_Integration_ko.chm`, `Source/WwiseSoundEngine_2022_1/**`, `Source/WwiseSoundEngine_2023_1/**`, `Source/WwiseSoundEngine_2024_1/**`, `Source/WwiseSoundEngine_Null/**`
+- **3차 완료/승인 (B 실행, D 승인):** `Source/WwiseSoundEngine_2022_1/**`, `Source/WwiseSoundEngine_2023_1/**` 총 95개 파일 삭제 + `WwiseSoundEngine.Build.cs`, `WwiseAuthoring.Build.cs`의 구버전 참조 4줄 제거. Win64 빌드/PIE/Wwise 초기화 로그 통과.
+- **유지 확정:** `ThirdParty/include/**`, `ThirdParty/x64_vc170/Profile(StaticCRT)/**`, `Wwise_UE_Integration_ko.chm`, `Source/WwiseSoundEngine_2024_1/**`, `Source/WwiseSoundEngine_Null/**`
 - **2차 상태:** `pdb` 정리 트랙(1회+2회) 완료.
-- **후속 검토(3차 후보):** `Source/WwiseSoundEngine_2022_1/**`, `Source/WwiseSoundEngine_2023_1/**` 등 구버전 모듈 정리는 D 별도 승인 후 진행.
+- **3차 상태:** 구버전 모듈(2022_1/2023_1) 정리 완료.
+- **유지 확정(최신):** `ThirdParty/include/**`, `ThirdParty/x64_vc170/Profile(StaticCRT)/**`, `Wwise_UE_Integration_ko.chm`, `Source/WwiseSoundEngine_2024_1/**`, `Source/WwiseSoundEngine_Null/**`
 - **최종 검증 완료 (C 검증, 2026-05-25):** Git 추적 상태/보존 무결성/Win64 빌드/Wwise 초기화 로그 조건 충족. CLI 자동 PIE 한계는 확인되었고 GUI PIE 1회에서 Error/Failed 없음 확인되어 One-shot Cleanup 최종 승인 완료.
 
 ---
