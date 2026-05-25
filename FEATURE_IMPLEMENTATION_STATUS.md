@@ -8,6 +8,7 @@
 | :--- | :---: | :---: | :--- | :--- | :--- |
 | Cleanup (엔진 코드/설정/플러그인 정리) | ✅ 완료 | 2026-05-25 | B/C 검증, D 승인 | Win64 빌드 + PIE/Wwise 초기화 로그 통과 | One-shot 포함 최종 승인 완료, 비Windows Engine.ini 재추적 해소, 불필요 pdb untrack 완료 |
 | Wwise 플러그인 정리 (1차~3차) | ✅ 완료 | 2026-05-25 | B/C 검증, D 승인 | Win64 빌드 재현 성공, Error/Warning 0, PIE/Wwise 초기화 통과 | WinGC/StaticCRT 정리 + 구버전 모듈(2022_1/2023_1) 제거 완료, 최신 2024_1+Null 체인 유지 |
+| Wwise 리스너 분리 (패닝=카메라, 거리=플레이어) | ✅ 완료 | 2026-05-25 | A 설계, B 구현, C 검증, D 승인 | Win64 빌드 성공, PIE/Wwise 초기화 정상, LogWwise Error 0 | SpatialAudioListener(카메라) 유지 + CharacterAkComponent 거리 Probe 분리, PossessedBy 재설정/UnPossessed 해제 적용 |
 
 ## 2) 진행 예정 피처
 
