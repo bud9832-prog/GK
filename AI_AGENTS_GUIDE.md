@@ -4,7 +4,7 @@
 
 **조직 구조:** **D**(기획 검증·임무 관리) → **P**(기획 문서화) → **A**(설계) · **B**(구현) · **C**(검증). KiHoon은 기획·사운드 요청의 최종 권한자입니다.
 
-**문서 간 충돌 시 우선순위:** §2(절대 금지) > §3(아키텍처 확정) > §1(워크플로·커밋·Honest Scope) > `CLAUDE.md` > `CLEANUP_SPEC.md` 등 기타 명세서
+**문서 간 충돌 시 우선순위:** §2(절대 금지) > §3(아키텍처 확정) > §1(워크플로·커밋·Honest Scope) > `CLAUDE.md` > 기타 운영 문서
 
 ---
 
@@ -126,7 +126,7 @@ P·A·B·C는 아래 **두 가지 판단** 중 하나를 스스로 선택합니�
 | :--- | :--- | :--- | :--- |
 | **지침·문서** | 지침 통합, 규칙 추가 | ② 즉시 처리 또는 KiHoon 지시 | A·B·C 자율 판단 |
 | **인프라** | `.gitignore`, C++ 스켈레톤 | 구현→(요청 시)커밋 | 엔진 없이 가능, 빌드는 설치 후 |
-| **Cleanup** | 레거시 에셋 삭제 | §4 삭제 대상 확정→실행→빌드 검증 | `CLEANUP_SPEC.md` §2 |
+| **Cleanup** | 레거시 에셋/플러그인 정리 | §4 삭제 대상 확정→실행→빌드 검증 | `FEATURE_IMPLEMENTATION_STATUS.md` 완료/보류 표 참조 |
 | **게임플레이** | Skill 1 전투 시스템 | **D 기획 검증**→임무 배분→A→B→C | §4 보류 항목·기획 명세 필수 |
 
 - **범위가 불명확할 때:** 지침·명세를 읽고 **충돌·미결 항목을 질문**합니다. 기훈님이 「그냥 해」「판단 후 정리」라고 하면 에이전트가 §3 기준으로 정리하고, **결정 사항은 문서에 반영**합니다.
@@ -264,7 +264,7 @@ TObjectPtr<UGKCombatConfig> CombatConfig;
 2. ~~Git 설정 (`.gitignore`, `.gitattributes`)~~ ✅
 3. ~~C++ 모듈 스켈레톤 (`Source/GK/`)~~ ✅
 4. ~~UE 5.7 엔진 설치 → `.sln` 생성 → 빌드 검증~~ ✅
-5. **Cleanup** — 1차 에셋 삭제 및 코드 Cleanup 완료 (`CLEANUP_SPEC.md` §2, #1·#5 보류)
+5. **Cleanup** — 엔진/플러그인 One-shot 및 Wwise 3차 정리 완료 (#1·#5 보류)
 6. **게임플레이** — D 기획 검증 + 기획 명세 + Skill 트리거 (`§4` 보류 항목 해소 후) ← 다음
 
 ### 3-7. 플랫폼/Config 정리 정책 (Windows Only 운영 기준)
@@ -276,6 +276,12 @@ TObjectPtr<UGKCombatConfig> CombatConfig;
   3. **삭제 금지:** 오디오/Wwise 절대 금지 범위(§2)
 - **실행 절차:** 삭제 후보는 D가 영향도(자동 재생성 여부, Default*.ini 참조, 빌드 리스크) 검토 후 KiHoon 결재를 받아 일괄 정리한다.
 - **검증:** 플랫폼 Config 정리 커밋은 `GKEditor Win64 Development` 재빌드 결과를 함께 보고한다.
+
+### 3-8. Cleanup 통합 현황 (요약)
+- **완료:** 엔진/플러그인 Cleanup 1~3차 + One-shot 정리 + 최종 검증 완료
+- **완료:** Wwise 구버전 모듈(`2022_1`, `2023_1`) 제거 및 `2024_1`+`Null` 체인 유지
+- **완료:** Wwise 리스너 분리 (패닝=카메라, 거리 Probe=플레이어)
+- **상세 이력 관리:** `FEATURE_IMPLEMENTATION_STATUS.md`를 단일 기준으로 사용
 
 ---
 
@@ -289,7 +295,7 @@ TObjectPtr<UGKCombatConfig> CombatConfig;
 | C++ 게임 모듈(`Source/GK/`) 스켈레톤 | `AGKCharacter`, `AGKGameMode`, 오디오 훅 선언 |
 | 지침·Git 설정 | `AI_AGENTS_GUIDE.md`, `.gitignore`, `.gitattributes` 등 |
 | UE 5.7 엔진 설치 및 C++ 빌드 검증 | `.sln` 생성, `GKEditor Win64 Development` 빌드 성공 |
-| 1차 Cleanup | Rifle/Pistol/Unarmed Attack 에셋 삭제, 코드 단 템플릿 잔재 및 튜닝값 외부화 |
+| Cleanup (엔진/플러그인) | 플랫폼/플러그인 정리, One-shot 검증, Wwise 3차 모듈 정리 완료 |
 
 ### 보류 중
 | 항목 | 상태 |
