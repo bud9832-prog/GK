@@ -1,11 +1,14 @@
 // Copyright Ashen Ossuary. All Rights Reserved.
 
 #include "GKCharacter.h"
+#include "AkAudioDevice.h"
+#include "AkComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 
 AGKCharacter::AGKCharacter()
@@ -23,6 +26,9 @@ AGKCharacter::AGKCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+
+	CharacterAkComponent = CreateDefaultSubobject<UAkComponent>(TEXT("CharacterAkComponent"));
+	CharacterAkComponent->SetupAttachment(GetCapsuleComponent());
 
 	ApplyCharacterTuning();
 }
@@ -53,6 +59,56 @@ void AGKCharacter::BeginPlay()
 			}
 		}
 	}
+
+	if (IsLocallyControlled())
+	{
+		GetWorldTimerManager().SetTimerForNextTick(this, &AGKCharacter::SetupWwiseDistanceProbe);
+	}
+}
+
+void AGKCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (IsLocallyControlled())
+	{
+		GetWorldTimerManager().SetTimerForNextTick(this, &AGKCharacter::SetupWwiseDistanceProbe);
+	}
+}
+
+void AGKCharacter::UnPossessed()
+{
+	if (FAkAudioDevice* AudioDevice = FAkAudioDevice::Get())
+	{
+		if (UAkComponent* SpatialListener = AudioDevice->GetSpatialAudioListener())
+		{
+			AudioDevice->SetDistanceProbe(SpatialListener, nullptr);
+		}
+	}
+
+	Super::UnPossessed();
+}
+
+void AGKCharacter::SetupWwiseDistanceProbe()
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+
+	FAkAudioDevice* AudioDevice = FAkAudioDevice::Get();
+	if (!AudioDevice || !CharacterAkComponent)
+	{
+		return;
+	}
+
+	UAkComponent* SpatialListener = AudioDevice->GetSpatialAudioListener();
+	if (!SpatialListener)
+	{
+		return;
+	}
+
+	AudioDevice->SetDistanceProbe(SpatialListener, CharacterAkComponent);
 }
 
 void AGKCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

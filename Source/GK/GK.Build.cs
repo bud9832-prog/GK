@@ -15,7 +15,8 @@ public class GK : ModuleRules
 			"Engine",
 			"InputCore",
 			"EnhancedInput",
-			"PhysicsCore"
+			"PhysicsCore",
+			"AkAudio"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

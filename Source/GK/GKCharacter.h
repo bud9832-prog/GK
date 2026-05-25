@@ -9,6 +9,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class UAkComponent;
 class UInputMappingContext;
 class UInputAction;
 
@@ -49,6 +50,8 @@ public:
 protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void UnPossessed() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
@@ -56,6 +59,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, Category = "Audio|Wwise")
+	TObjectPtr<UAkComponent> CharacterAkComponent;
 
 	// --- Character Tuning (EditDefaultsOnly — §3-4, 에디터·BP 기본값에서 조정) ---
 	UPROPERTY(EditDefaultsOnly, Category = "Character|Capsule")
@@ -118,4 +124,5 @@ private:
 	void HandleMove(const FInputActionValue& Value);
 	void HandleLook(const FInputActionValue& Value);
 	void ApplyCharacterTuning();
+	void SetupWwiseDistanceProbe();
 };
