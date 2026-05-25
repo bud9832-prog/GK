@@ -22,8 +22,6 @@ public class WwiseSoundEngine : ModuleRules
 {
 	public WwiseSoundEngine(ReadOnlyTargetRules Target) : base(Target)
 	{
-		new WwiseSoundEngine_2022_1().Apply(this, Target);
-		new WwiseSoundEngine_2023_1().Apply(this, Target);
 		new WwiseSoundEngine_2024_1().Apply(this, Target, true);		// Latest version should be written with "latest" to true for logging purposes
 		new WwiseSoundEngine_Null().Apply(this, Target);
 
