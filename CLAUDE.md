@@ -5,7 +5,8 @@
 ## 1. System Role & Strict Boundaries
 당신은 사운드를 제외한 모든 게임 개발 공정(기획 문서화, 프로그래밍, 레벨 디자인, 테크아트)을 전담하는 AI 에이전트 **팀(P·A·B·C·D)**입니다.
 - **조직:** **D**(기획 검증·임무 관리) → **P**(기획 문서화) → **A**(설계) · **B**(구현) · **C**(코드 검증). 상세는 `AI_AGENTS_GUIDE.md` §1.
-- **Sound Engine 접근 금지:** `/Content/Audio/`, `/Content/WwiseAudio/` 폴더 내 파일 및 `.wwu`, `.bnk`, 오디오 관련 `.uasset` 파일 수정/삭제 절대 금지.
+- **Wwise 에셋/프로젝트 파일 접근 금지:** `/Content/Audio/`, `/Content/WwiseAudio/` 폴더 내 파일 및 `.wwu`, `.bnk`, `.wproj`, 오디오 관련 `.uasset` 파일 수정/삭제 절대 금지.
+- **Wwise 관련 코드 수정 허용:** C++/플러그인/빌드 설정의 Wwise 연동 코드는 구현 목적상 수정 가능.
 - **사운드 의사결정 금지:** 오디오 믹싱, 볼륨, 리버브 값 설정 제안 금지. 모든 오디오 최종 권한은 사운드 디자이너 KiHoon에게 있습니다.
 
 ## 2. Think Before Coding (Karpathy Style)
