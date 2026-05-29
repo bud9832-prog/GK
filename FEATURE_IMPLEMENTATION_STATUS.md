@@ -15,8 +15,8 @@
 | 피처 | 상태 | 선행 조건 | 다음 액션 |
 | :--- | :---: | :--- | :--- |
 | `Design/GAME_DESIGN_PILLARS.md` — 게임 디자인 기본 정의서 | 🟢 KiHoon 최종 승인 (2026-05-29, v2 입력 §7-2/§8 포함) + D 조건부 통과 4건 SKILL_01 반영 완료 | — | 후속 변경 시 동기화만 |
-| `Design/SKILL_01_COMBAT_SPEC.md` v2 — Stage 1 전투 명세 (Run/Sprint, 1·2·3 콤보, 회피, 회복약, 락온) | 🟢 **KiHoon 최종 승인 + D 기술 검증 통과 (2026-05-29 Go)** — §11-1 수치 12건 확정, §11-2 P 위임 확정, §11-3 D 위임 3건 모두 P 권장 그대로 채택 | KiHoon·D 모든 검증 완료 | 커밋·푸시 → D 임무 배분 (A 설계 → B 구현 → C 검증) |
-| Skill 1: Combat System Builder 구현 | ⏸ **착수 가능 (D Go 2026-05-29)** | 명세 최종 승인 / 플레이스홀더 전략(§9) 활용 | D 임무 배분 → A 설계 브리핑 → KiHoon 승인 → B 구현 → C 검증 |
+| `Design/SKILL_01_COMBAT_SPEC.md` v2 — Stage 1 전투 명세 (Run/Sprint, 1·2·3 콤보, 회피, 회복약, 락온) | 🟢 KiHoon 최종 승인 + D 기술 검증 완료 (2026-05-29) — §11-1 수치 12건 확정, §11-2 P 위임 확정, §11-3 D 위임 3건 채택 | KiHoon·D 명세 검증 완료 | 명세 변경 필요 시에만 동기화 |
+| Skill 1: Combat System Builder 구현 | 🔴 **보류 종료 (최종 Go 미승인, 2026-05-29)** | PIE 런타임 증거 미수집 (tap/hold, Sprint→Evade, 상태 전이, LogWwise Error 0) | 재개 트리거: `SKILL_01 v2 보류 건 재개 - C 런타임 증거 수집부터` |
 
 ## 3) 보류/추가 검토 항목
 
@@ -24,6 +24,7 @@
 | :--- | :---: | :--- |
 | `Content/LevelPrototyping/` 정리 | 보류 | KiHoon 재결재 필요 |
 | `Content/Characters/Mannequins/Anims/Death/` 정리 | 보류 | 무기 전용 사망 애니 확정 후 결정 |
+| Skill 1 런타임 최종 게이트 | 보류 | 빌드/정적 확인은 통과. PIE 증거 수집 전까지 D 최종 Go 금지 |
 
 ## 4) 업데이트 규칙
 
