@@ -14,7 +14,8 @@
 
 | 피처 | 상태 | 선행 조건 | 다음 액션 |
 | :--- | :---: | :--- | :--- |
-| Skill 1: Combat System Builder | ⏸ 대기 | KiHoon 전투 기획 명세(수치/입력/몽타주) + D/P 승인 루프 완료 | P 기획서 + 아트 어셋 체크리스트 제출 → D 검증 → A/B/C 착수 |
+| `Design/GAME_DESIGN_PILLARS.md` — 게임 디자인 기본 정의서 | 🟡 P 1차 산출물 제출 (2026-05-29) | A 결정 3건 확정, B 권장 4건 KiHoon 검토 | KiHoon 1차 승인 → D 기술 검증 → 최종 게이트 |
+| Skill 1: Combat System Builder (Stage 1 시작 가능 액션 한정) | ⏸ 대기 | **Pillars 최종 승인** + 전투 기획 명세(수치/입력/몽타주) + D/P 승인 루프 완료 | Pillars 승인 후 `Design/SKILL_01_COMBAT_SPEC.md` 작성 → D 검증 → A/B/C 착수 |
 
 ## 3) 보류/추가 검토 항목
 

@@ -63,7 +63,11 @@
 - **플레이어 클래스:** `AGKCharacter` → `BP_GKCharacter` (현재 임시: `BP_ThirdPersonCharacter`)
 - **전투:** 근접 무기(Melee)
 - **C++ 모듈:** `Source/GK/` (`AGKCharacter`, `AGKGameMode`)
+- **기획 산출물 폴더:** `Design/` — P가 작성·관리하는 `.md` 기획서 저장소
+  - `Design/GAME_DESIGN_PILLARS.md` — 게임 디자인 기본 정의서 (단일 기준, 2026-05-29 P 1차 산출물)
+  - `Design/SKILL_0X_*_SPEC.md` — Skill별 상세 명세서 (예정)
+- **아트 어셋 체크리스트:** `ART_ASSET_CHECKLIST.md` (P 갱신, Pillars 의존성 반영)
 - **기획 변수:** Data Asset·테이블·에디터 — `AI_AGENTS_GUIDE.md` §3-4
 - **보류 항목 전체:** `AI_AGENTS_GUIDE.md` §4
-- **부트스트랩 순서:** `AI_AGENTS_GUIDE.md` §3-6 (현재 6단계 — 게임플레이 기획 검증 대기)
+- **부트스트랩 순서:** `AI_AGENTS_GUIDE.md` §3-6 (현재 6-1단계 — Pillars 1차 승인 대기)
 - **플랫폼 Config 정책:** `AI_AGENTS_GUIDE.md` §3-7 (Windows-only, 비Windows Config 자동 삭제 금지)

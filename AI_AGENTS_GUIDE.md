@@ -46,7 +46,9 @@
   - 코드/에셋 수정 없이 **기획 산출물**만 작성한다.
   - 모호한 요구사항은 가정하지 않고 선택지·트레이드오프를 제시한다.
   - 확정된 기획은 D에게 전달하고, D 승인 후 A/B/C 단계로 넘긴다.
-  - 기획 산출물은 저장용 `.md` 파일 작성이 필수가 아니다. **KiHoon에게 바로 전달 가능한 정리 문서 형태**로 제출한다.
+  - **기획 산출물 저장 위치 (2026-05-29 KiHoon 결재):** 모든 기획 문서는 `Design/` 폴더에 `.md` 파일로 저장한다. KiHoon 검토용 정리 문서 형태로도 함께 제출한다.
+    - `Design/GAME_DESIGN_PILLARS.md` — 게임 디자인 기본 정의서 (단일 기준)
+    - `Design/SKILL_0X_*_SPEC.md` — Skill별 상세 명세서
   - 기획서 제출 시 **KiHoon 액션용 아트 어셋 체크리스트**를 반드시 함께 제공한다.
   - 아트 어셋 체크리스트는 `ART_ASSET_CHECKLIST.md`를 기준 템플릿으로 사용하고, P가 최신 상태로 갱신·관리한다.
 
@@ -272,8 +274,12 @@ TObjectPtr<UGKCombatConfig> CombatConfig;
 2. ~~Git 설정 (`.gitignore`, `.gitattributes`)~~ ✅
 3. ~~C++ 모듈 스켈레톤 (`Source/GK/`)~~ ✅
 4. ~~UE 5.7 엔진 설치 → `.sln` 생성 → 빌드 검증~~ ✅
-5. **Cleanup** — 엔진/플러그인 One-shot 및 Wwise 3차 정리 완료 (#1·#5 보류)
-6. **게임플레이** — D 기획 검증 + 기획 명세 + Skill 트리거 (`§4` 보류 항목 해소 후) ← 다음
+5. ~~Cleanup — 엔진/플러그인 One-shot 및 Wwise 3차 정리 완료 (#1·#5 보류)~~ ✅
+6. **게임플레이 기획** ← 진행 중
+   - 6-1. `Design/GAME_DESIGN_PILLARS.md` — P 1차 산출물 (2026-05-29) → KiHoon 1차 승인 + D 기술 검증
+   - 6-2. `Design/SKILL_01_COMBAT_SPEC.md` — Stage 1 시작 가능 액션(약공격 1타·회피·회복약·달리기) 상세 명세 → 승인 루프
+   - 6-3. Skill 1 D 임무 배분 → A 설계 → B 구현 → C 검증
+7. **확장 기획·구현** — Stage 1 클리어 후 해금 영역, Skill 2~5 (보류)
 
 ### 3-7. 플랫폼/Config 정리 정책 (Windows Only 운영 기준)
 - **타깃 플랫폼 확정:** 런타임 타깃은 Windows 단일(`Win64`)이다.
