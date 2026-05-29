@@ -14,8 +14,9 @@
 
 | 피처 | 상태 | 선행 조건 | 다음 액션 |
 | :--- | :---: | :--- | :--- |
-| `Design/GAME_DESIGN_PILLARS.md` — 게임 디자인 기본 정의서 | 🟡 P 1차 산출물 제출 (2026-05-29) | A 결정 3건 확정, B 권장 4건 KiHoon 검토 | KiHoon 1차 승인 → D 기술 검증 → 최종 게이트 |
-| Skill 1: Combat System Builder (Stage 1 시작 가능 액션 한정) | ⏸ 대기 | **Pillars 최종 승인** + 전투 기획 명세(수치/입력/몽타주) + D/P 승인 루프 완료 | Pillars 승인 후 `Design/SKILL_01_COMBAT_SPEC.md` 작성 → D 검증 → A/B/C 착수 |
+| `Design/GAME_DESIGN_PILLARS.md` — 게임 디자인 기본 정의서 | 🟢 KiHoon 최종 승인 (2026-05-29, v2 입력 §7-2/§8 포함) + D 조건부 통과 4건 SKILL_01 반영 완료 | — | 후속 변경 시 동기화만 |
+| `Design/SKILL_01_COMBAT_SPEC.md` v2 — Stage 1 전투 명세 (Run/Sprint, 1·2·3 콤보, 회피, 회복약, 락온) | 🟢 **KiHoon 최종 승인 + D 기술 검증 통과 (2026-05-29 Go)** — §11-1 수치 12건 확정, §11-2 P 위임 확정, §11-3 D 위임 3건 모두 P 권장 그대로 채택 | KiHoon·D 모든 검증 완료 | 커밋·푸시 → D 임무 배분 (A 설계 → B 구현 → C 검증) |
+| Skill 1: Combat System Builder 구현 | ⏸ **착수 가능 (D Go 2026-05-29)** | 명세 최종 승인 / 플레이스홀더 전략(§9) 활용 | D 임무 배분 → A 설계 브리핑 → KiHoon 승인 → B 구현 → C 검증 |
 
 ## 3) 보류/추가 검토 항목
 
