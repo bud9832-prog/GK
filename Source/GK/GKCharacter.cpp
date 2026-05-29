@@ -271,8 +271,17 @@ void AGKCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 void AGKCharacter::HandleMove(const FInputActionValue& Value)
 {
 	MoveInput = Value.Get<FVector2D>();
+	ApplyMovementFromCachedInput();
+}
 
-	if (!Controller || CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun
+void AGKCharacter::ApplyMovementFromCachedInput()
+{
+	if (!Controller || MoveInput.IsNearlyZero())
+	{
+		return;
+	}
+
+	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun
 		|| CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery
 		|| CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Heal)
 	{
@@ -312,11 +321,11 @@ void AGKCharacter::HandleEvadeSprintStarted(const FInputActionValue& Value)
 		false);
 }
 
-void AGKCharacter::HandleEvadeSprintTriggered(const FInputActionValue& Value)
+void AGKCharacter::HandleEvadeSprintTriggered(const FInputActionValue& /*Value*/)
 {
-	if (CombatState == EGKCombatState::Sprint && !MoveInput.IsNearlyZero())
+	if (CombatState == EGKCombatState::Sprint)
 	{
-		HandleMove(Value);
+		ApplyMovementFromCachedInput();
 	}
 }
 
@@ -413,14 +422,14 @@ bool AGKCharacter::CanTransitionToEvade() const
 		return false;
 	}
 
-	if (CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery
-		|| CombatState == EGKCombatState::Sprint)
+	if (CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery)
 	{
 		return false;
 	}
 
 	if (CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Heal
-		|| CombatState == EGKCombatState::Idle || CombatState == EGKCombatState::Run)
+		|| CombatState == EGKCombatState::Idle || CombatState == EGKCombatState::Run
+		|| CombatState == EGKCombatState::Sprint)
 	{
 		return HasEnoughStamina(GetCombatConfig()->Stamina_Evade);
 	}

@@ -210,6 +210,7 @@ private:
 
 	void HandleMove(const FInputActionValue& Value);
 	void HandleLook(const FInputActionValue& Value);
+	void ApplyMovementFromCachedInput();
 	void HandleEvadeSprintStarted(const FInputActionValue& Value);
 	void HandleEvadeSprintTriggered(const FInputActionValue& Value);
 	void HandleEvadeSprintCompleted(const FInputActionValue& Value);
