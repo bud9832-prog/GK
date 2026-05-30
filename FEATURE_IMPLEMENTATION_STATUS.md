@@ -9,6 +9,7 @@
 | Cleanup (엔진 코드/설정/플러그인 정리) | ✅ 완료 | 2026-05-25 | B/C 검증, D 승인 | Win64 빌드 + PIE/Wwise 초기화 로그 통과 | One-shot 포함 최종 승인 완료, 비Windows Engine.ini 재추적 해소, 불필요 pdb untrack 완료 |
 | Wwise 플러그인 정리 (1차~3차) | ✅ 완료 | 2026-05-25 | B/C 검증, D 승인 | Win64 빌드 재현 성공, Error/Warning 0, PIE/Wwise 초기화 통과 | WinGC/StaticCRT 정리 + 구버전 모듈(2022_1/2023_1) 제거 완료, 최신 2024_1+Null 체인 유지 |
 | Wwise 리스너 분리 (패닝=카메라, 거리=플레이어) | ✅ 완료 | 2026-05-25 | A 설계, B 구현, C 검증, D 승인 | Win64 빌드 성공, PIE/Wwise 초기화 정상, LogWwise Error 0 | SpatialAudioListener(카메라) 유지 + CharacterAkComponent 거리 Probe 분리, PossessedBy 재설정/UnPossessed 해제 적용 |
+| 에이전트 운영 절차 업데이트 (A→B→C 엄수 + D 간소화 예외) | ✅ 완료 | 2026-05-31 | D 집도 | 문서 동기화 검토 통과 (`AI_AGENTS_GUIDE.md`/`CLAUDE.md`) | A→B→C 순서 강제, B·C 빌드 보고 의무, C 리뷰어 우선 원칙, D의 PIE 수동 검증 명시 지시 규칙 반영 |
 
 ## 2) 진행 예정 피처
 
