@@ -41,9 +41,33 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void ApplyComboDamage(float Damage, int32 ComboIndex, AActor* InstigatorActor);
 
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void ApplyHeavyAttackDamage(float Damage, float DownDuration, AActor* InstigatorActor);
+
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void ApplyParrySuccess(float RipostWindowDuration, AActor* InstigatorActor);
+
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void SetAttackHitWindowActive(bool bActive);
+
+	UFUNCTION(BlueprintPure, Category = "Combat")
+	bool IsAttackHitWindowActive() const { return bAttackHitWindowActive; }
+
+	UFUNCTION(BlueprintPure, Category = "Combat")
+	bool IsInDownState() const;
+
 	UFUNCTION(BlueprintPure, Category = "Combat")
 	bool IsAlive() const { return CurrentHP > 0.f && LastHitReaction != EGKHitReaction::Death; }
 
 protected:
+	virtual void Tick(float DeltaSeconds) override;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	bool bAttackHitWindowActive = false;
+
+	float DownStateExpiresAt = 0.f;
+
+	void EnterDownState(float Duration, AActor* InstigatorActor);
+
 	virtual void BeginPlay() override;
 };

@@ -14,6 +14,11 @@ class GK_API AGKGameMode : public AGameModeBase
 public:
 	AGKGameMode();
 
+protected:
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
+	virtual void RestartPlayer(AController* NewPlayer) override;
+	virtual APawn* SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot) override;
+
 	// --- Stage Hooks (Skill 2 구현 대기 — 선언만, 로직 없음) ---
 	UPROPERTY(BlueprintReadOnly, Category = "Stage")
 	int32 CurrentStage = 1;

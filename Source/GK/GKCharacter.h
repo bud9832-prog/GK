@@ -28,6 +28,9 @@ enum class EGKCombatState : uint8
 	Heal            UMETA(DisplayName = "Heal"),
 	Jump            UMETA(DisplayName = "Jump"),
 	JumpAttack      UMETA(DisplayName = "Jump Attack"),
+	HeavyAttack     UMETA(DisplayName = "Heavy Attack"),
+	Parry_Active    UMETA(DisplayName = "Parry Active"),
+	Parry_Recovery  UMETA(DisplayName = "Parry Recovery"),
 	HitStun         UMETA(DisplayName = "Hit Stun"),
 	Death           UMETA(DisplayName = "Death"),
 };
@@ -65,6 +68,27 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Audio|Skill1|Heal")
 	void OnHealItemComplete();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Audio|Skill1B|Parry")
+	void OnParryAttempt();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Audio|Skill1B|Parry")
+	void OnParrySuccess();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Audio|Skill1B|Parry")
+	void OnParryFail();
+
+	UFUNCTION(BlueprintCallable, Category = "Combat|Unlock")
+	void SetUnlockHeavyAttack(bool bUnlocked);
+
+	UFUNCTION(BlueprintCallable, Category = "Combat|Unlock")
+	void SetUnlockParry(bool bUnlocked);
+
+	UFUNCTION(BlueprintPure, Category = "Combat|Unlock")
+	bool CanUseHeavyAttack() const { return bCanUseHeavyAttack; }
+
+	UFUNCTION(BlueprintPure, Category = "Combat|Unlock")
+	bool CanUseParry() const { return bCanUseParry; }
 
 	UFUNCTION(BlueprintPure, Category = "Combat")
 	EGKCombatState GetCombatState() const { return CombatState; }
@@ -152,8 +176,15 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	int32 HealItemRemaining = 0;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat|Unlock")
+	bool bCanUseHeavyAttack = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat|Unlock")
+	bool bCanUseParry = false;
+
 private:
 	static constexpr int32 JumpAttackAudioComboIndex = 3;
+	static constexpr int32 HeavyAttackAudioComboIndex = 4;
 
 	// --- Enhanced Input ---
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -178,6 +209,12 @@ private:
 	TObjectPtr<UInputAction> AttackAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> HeavyAttackAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> ParryAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> HealAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -193,6 +230,8 @@ private:
 	bool bHealCompleted = false;
 	bool bAttackHitApplied = false;
 	bool bJumpAttackHitApplied = false;
+	bool bHeavyAttackHitApplied = false;
+	bool bParrySucceeded = false;
 	bool bIsInvulnerable = false;
 
 	float StaminaRegenBlockedUntil = 0.f;
@@ -204,6 +243,8 @@ private:
 	FTimerHandle HealDrinkTimerHandle;
 	FTimerHandle EvadePhaseTimerHandle;
 	FTimerHandle HitStunTimerHandle;
+	FTimerHandle ParryActiveTimerHandle;
+	FTimerHandle ParryRecoveryTimerHandle;
 
 	TObjectPtr<UDataTable> RuntimeComboTable;
 
@@ -225,6 +266,8 @@ private:
 	void HandleJumpStarted(const FInputActionValue& Value);
 	void HandleEvadeStarted(const FInputActionValue& Value);
 	void HandleAttackStarted(const FInputActionValue& Value);
+	void HandleHeavyAttackStarted(const FInputActionValue& Value);
+	void HandleParryStarted(const FInputActionValue& Value);
 	void HandleHealStarted(const FInputActionValue& Value);
 	void HandleLockOnStarted(const FInputActionValue& Value);
 
@@ -239,8 +282,12 @@ private:
 	bool CanTransitionToJump() const;
 	bool CanTransitionToAttack() const;
 	bool CanTransitionToJumpAttack() const;
+	bool CanTransitionToHeavyAttack() const;
+	bool CanTransitionToParry() const;
 	bool CanTransitionToHeal() const;
+	bool IsGroundLocomotionState() const;
 	bool IsAirborneCombatState() const;
+	bool IsParryMotionState() const;
 	bool HasEnoughStamina(float Cost) const;
 
 	void SetCombatState(EGKCombatState NewState);
@@ -251,6 +298,8 @@ private:
 	void TryStartAttack();
 	void TryStartJump();
 	void TryStartJumpAttack();
+	void TryStartHeavyAttack();
+	void TryStartParry();
 	void TryStartEvade();
 	void TryStartHeal();
 	void EnterSprintState();
@@ -267,6 +316,18 @@ private:
 	void OnJumpAttackHitWindowEnd();
 	void ProcessJumpAttackHit();
 	void FinishJumpAttack();
+
+	void BeginHeavyAttack();
+	void OnHeavyAttackHitWindowStart();
+	void OnHeavyAttackHitWindowEnd();
+	void ProcessHeavyAttackHit();
+	void FinishHeavyAttack();
+
+	void BeginParry();
+	void ProcessParryWindowCheck();
+	void EndParryActivePhase();
+	void EnterParryRecoveryPhase();
+	void FinishParryMotion();
 
 	void BeginEvadeMotion();
 	void EnterEvadeRecoveryPhase();
@@ -291,6 +352,9 @@ private:
 	void BroadcastHealItemDrink();
 	void BroadcastHealItemComplete();
 	void BroadcastHitDamage(const FVector& HitLocation, AActor* Attacker);
+	void BroadcastParryAttempt();
+	void BroadcastParrySuccess();
+	void BroadcastParryFail();
 
 	void ToggleLockOn();
 	void AcquireLockOnTarget();

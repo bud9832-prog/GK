@@ -118,6 +118,41 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LockOn")
 	float LockOnFOVDegrees = 60.f;
 
+	// HeavyAttack (Skill1B)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HeavyAttack")
+	TObjectPtr<UAnimMontage> HeavyAttackMontage = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HeavyAttack")
+	float HeavyAttack_Damage = 60.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HeavyAttack")
+	float Stamina_HeavyAttack = 35.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HeavyAttack")
+	float HeavyAttack_MotionDuration = 1.20f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HeavyAttack")
+	float HeavyAttack_HitWindowStart = 0.40f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HeavyAttack")
+	float HeavyAttack_HitWindowEnd = 0.70f;
+
+	// Parry (Skill1B)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Parry")
+	TObjectPtr<UAnimMontage> ParryMontage = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Parry")
+	float Stamina_Parry = 18.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Parry")
+	float Parry_ActiveDuration = 0.20f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Parry")
+	float Parry_RecoveryDuration = 0.50f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Parry")
+	float Parry_RipostWindow = 1.5f;
+
 	/** §7-3 default rows — used when ComboAttackTable is not assigned in editor. */
 	static UDataTable* CreateDefaultComboAttackTable(UObject* Outer);
 

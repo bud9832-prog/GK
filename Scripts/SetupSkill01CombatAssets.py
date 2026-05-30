@@ -22,9 +22,16 @@ V3_COMBAT_KEY_MAPPINGS = [
     ("IA_Evade", "LeftControl"),
     ("IA_Attack", "LeftMouseButton"),
     ("IA_HeavyAttack", "RightMouseButton"),
+    ("IA_Parry", "R"),
     ("IA_Heal", "E"),
     ("IA_LockOn", "MiddleMouseButton"),
     ("IA_Ultimate", "G"),
+]
+
+# INPUT_MAPPING.md §2 — gamepad bindings (same IA may map to keyboard + gamepad)
+V3_GAMEPAD_KEY_MAPPINGS = [
+    ("IA_HeavyAttack", "Gamepad_RightTrigger"),
+    ("IA_Parry", "Gamepad_LeftTrigger"),
 ]
 
 DEPRECATED_INPUT_ACTIONS = ["IA_EvadeSprint"]
@@ -151,6 +158,11 @@ def rebuild_imc_default_v3(actions: dict[str, unreal.InputAction]) -> unreal.Inp
         new_mappings.append(create_mapping(action, key_name))
         log(f"Mapped {action_name} -> {key_name}")
 
+    for action_name, key_name in V3_GAMEPAD_KEY_MAPPINGS:
+        action = actions[action_name]
+        new_mappings.append(create_mapping(action, key_name))
+        log(f"Mapped {action_name} -> {key_name} (gamepad)")
+
     validate_imc_mappings(new_mappings)
     imc.set_editor_property("mappings", new_mappings)
     save_asset(imc)
@@ -210,6 +222,8 @@ def get_or_create_bp_gk_character(
     ia_jump: unreal.InputAction,
     ia_evade: unreal.InputAction,
     ia_attack: unreal.InputAction,
+    ia_heavy_attack: unreal.InputAction,
+    ia_parry: unreal.InputAction,
     ia_heal: unreal.InputAction,
     ia_lock_on: unreal.InputAction,
 ) -> unreal.Blueprint:
@@ -248,6 +262,8 @@ def get_or_create_bp_gk_character(
     bp_cdo.set_editor_property("jump_action", ia_jump)
     bp_cdo.set_editor_property("evade_action", ia_evade)
     bp_cdo.set_editor_property("attack_action", ia_attack)
+    bp_cdo.set_editor_property("heavy_attack_action", ia_heavy_attack)
+    bp_cdo.set_editor_property("parry_action", ia_parry)
     bp_cdo.set_editor_property("heal_action", ia_heal)
     bp_cdo.set_editor_property("lock_on_action", ia_lock_on)
     bp_cdo.set_editor_property("combat_config", combat_config)
@@ -255,7 +271,7 @@ def get_or_create_bp_gk_character(
 
     compile_blueprint(bp)
     save_asset(bp)
-    log("Configured BP_GKCharacter defaults (v3: sprint/jump/evade actions wired)")
+    log("Configured BP_GKCharacter defaults (v3 + Skill01B heavy/parry actions wired)")
     return bp
 
 
@@ -287,6 +303,7 @@ def main() -> None:
         "IA_Evade": get_or_create_boolean_input_action("IA_Evade"),
         "IA_Attack": get_or_create_boolean_input_action("IA_Attack"),
         "IA_HeavyAttack": get_or_create_boolean_input_action("IA_HeavyAttack"),
+        "IA_Parry": get_or_create_boolean_input_action("IA_Parry"),
         "IA_Heal": get_or_create_boolean_input_action("IA_Heal"),
         "IA_LockOn": get_or_create_boolean_input_action("IA_LockOn"),
         "IA_Ultimate": get_or_create_boolean_input_action("IA_Ultimate"),
@@ -313,17 +330,24 @@ def main() -> None:
         v3_actions["IA_Jump"],
         v3_actions["IA_Evade"],
         v3_actions["IA_Attack"],
+        v3_actions["IA_HeavyAttack"],
+        v3_actions["IA_Parry"],
         v3_actions["IA_Heal"],
         v3_actions["IA_LockOn"],
     )
 
     update_game_mode_default_pawn(bp_gk)
 
+    parry_asset_path = f"{INPUT_ACTIONS_PATH}/IA_Parry"
+    if not EDITOR_ASSET_LIB.does_asset_exist(parry_asset_path):
+        raise RuntimeError(f"IA_Parry asset missing after setup: {parry_asset_path}")
+    log(f"Verified asset exists: {parry_asset_path}")
+
     EDITOR_ASSET_LIB.save_directory(DATA_PATH, only_if_is_dirty=False, recursive=True)
     EDITOR_ASSET_LIB.save_directory(INPUT_ACTIONS_PATH, only_if_is_dirty=False, recursive=True)
     EDITOR_ASSET_LIB.save_directory(BP_PATH, only_if_is_dirty=False, recursive=True)
 
-    log("SKILL_01 v3 input sync complete")
+    log("SKILL_01 v3 + Skill01B input sync complete")
 
 
 if __name__ == "__main__":

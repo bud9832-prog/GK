@@ -168,9 +168,15 @@ void AGKCharacter::Tick(float DeltaSeconds)
 		return;
 	}
 
-	if (CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::JumpAttack)
+	if (CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::JumpAttack
+		|| CombatState == EGKCombatState::HeavyAttack)
 	{
 		ActiveMotionElapsed += DeltaSeconds;
+	}
+
+	if (CombatState == EGKCombatState::Parry_Active)
+	{
+		ProcessParryWindowCheck();
 	}
 
 	UpdateLockOn(DeltaSeconds);
@@ -182,6 +188,15 @@ void AGKCharacter::Tick(float DeltaSeconds)
 void AGKCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+
+	const UWorld* World = GetWorld();
+	const float TimeSeconds = World ? World->GetTimeSeconds() : 0.f;
+	UE_LOG(LogTemp, Log,
+		TEXT("[GK|Possession] PossessedBy Controller=%s Pawn=%s Class=%s Time=%.3f"),
+		*GetNameSafe(NewController),
+		*GetNameSafe(this),
+		*GetClass()->GetName(),
+		TimeSeconds);
 
 	if (IsLocallyControlled())
 	{
@@ -267,6 +282,16 @@ void AGKCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		EIC->BindAction(AttackAction, ETriggerEvent::Started, this, &AGKCharacter::HandleAttackStarted);
 	}
 
+	if (HeavyAttackAction)
+	{
+		EIC->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &AGKCharacter::HandleHeavyAttackStarted);
+	}
+
+	if (ParryAction)
+	{
+		EIC->BindAction(ParryAction, ETriggerEvent::Started, this, &AGKCharacter::HandleParryStarted);
+	}
+
 	if (HealAction)
 	{
 		EIC->BindAction(HealAction, ETriggerEvent::Started, this, &AGKCharacter::HandleHealStarted);
@@ -294,7 +319,8 @@ void AGKCharacter::ApplyMovementFromCachedInput()
 	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun
 		|| CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery
 		|| CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Heal
-		|| CombatState == EGKCombatState::JumpAttack)
+		|| CombatState == EGKCombatState::JumpAttack || CombatState == EGKCombatState::HeavyAttack
+		|| CombatState == EGKCombatState::Parry_Active || CombatState == EGKCombatState::Parry_Recovery)
 	{
 		return;
 	}
@@ -403,6 +429,22 @@ void AGKCharacter::HandleAttackStarted(const FInputActionValue& Value)
 	}
 }
 
+void AGKCharacter::HandleHeavyAttackStarted(const FInputActionValue& /*Value*/)
+{
+	if (CanTransitionToHeavyAttack())
+	{
+		TryStartHeavyAttack();
+	}
+}
+
+void AGKCharacter::HandleParryStarted(const FInputActionValue& /*Value*/)
+{
+	if (CanTransitionToParry())
+	{
+		TryStartParry();
+	}
+}
+
 void AGKCharacter::HandleHealStarted(const FInputActionValue& Value)
 {
 	if (CanTransitionToHeal())
@@ -423,7 +465,14 @@ bool AGKCharacter::CanAcceptCombatInput() const
 {
 	return CombatState != EGKCombatState::Death && CombatState != EGKCombatState::HitStun
 		&& CombatState != EGKCombatState::Evade_Active && CombatState != EGKCombatState::Evade_Recovery
-		&& CombatState != EGKCombatState::Jump && CombatState != EGKCombatState::JumpAttack;
+		&& CombatState != EGKCombatState::Jump && CombatState != EGKCombatState::JumpAttack
+		&& CombatState != EGKCombatState::Parry_Active && CombatState != EGKCombatState::Parry_Recovery;
+}
+
+bool AGKCharacter::IsGroundLocomotionState() const
+{
+	return CombatState == EGKCombatState::Idle || CombatState == EGKCombatState::Run
+		|| CombatState == EGKCombatState::Sprint;
 }
 
 bool AGKCharacter::IsAirborneCombatState() const
@@ -431,21 +480,24 @@ bool AGKCharacter::IsAirborneCombatState() const
 	return CombatState == EGKCombatState::Jump || CombatState == EGKCombatState::JumpAttack;
 }
 
+bool AGKCharacter::IsParryMotionState() const
+{
+	return CombatState == EGKCombatState::Parry_Active || CombatState == EGKCombatState::Parry_Recovery;
+}
+
 bool AGKCharacter::CanTransitionToEvade() const
 {
-	if (!CanAcceptCombatInput())
+	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun
+		|| CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery
+		|| CombatState == EGKCombatState::Jump || CombatState == EGKCombatState::JumpAttack
+		|| CombatState == EGKCombatState::Parry_Active)
 	{
 		return false;
 	}
 
-	if (CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery)
-	{
-		return false;
-	}
-
-	if (CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Heal
-		|| CombatState == EGKCombatState::Idle || CombatState == EGKCombatState::Run
-		|| CombatState == EGKCombatState::Sprint)
+	if (CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::HeavyAttack
+		|| CombatState == EGKCombatState::Heal || CombatState == EGKCombatState::Parry_Recovery
+		|| IsGroundLocomotionState())
 	{
 		return HasEnoughStamina(GetCombatConfig()->Stamina_Evade);
 	}
@@ -461,7 +513,8 @@ bool AGKCharacter::CanTransitionToSprint() const
 	}
 
 	if (CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Heal
-		|| CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery)
+		|| CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery
+		|| CombatState == EGKCombatState::HeavyAttack || IsParryMotionState())
 	{
 		return false;
 	}
@@ -495,13 +548,50 @@ bool AGKCharacter::CanTransitionToAttack() const
 
 	if (CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Death
 		|| CombatState == EGKCombatState::HitStun || CombatState == EGKCombatState::Evade_Active
-		|| CombatState == EGKCombatState::Evade_Recovery || CombatState == EGKCombatState::Heal)
+		|| CombatState == EGKCombatState::Evade_Recovery || CombatState == EGKCombatState::Heal
+		|| CombatState == EGKCombatState::HeavyAttack || IsParryMotionState())
 	{
 		return false;
 	}
 
 	const FGKComboAttackRow* Row = GetComboRow(0);
 	return Row && HasEnoughStamina(Row->StaminaCost);
+}
+
+bool AGKCharacter::CanTransitionToHeavyAttack() const
+{
+	if (!bCanUseHeavyAttack || IsAirborneCombatState())
+	{
+		return false;
+	}
+
+	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun
+		|| CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::HeavyAttack
+		|| CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery
+		|| CombatState == EGKCombatState::Heal || IsParryMotionState())
+	{
+		return false;
+	}
+
+	return IsGroundLocomotionState() && HasEnoughStamina(GetCombatConfig()->Stamina_HeavyAttack);
+}
+
+bool AGKCharacter::CanTransitionToParry() const
+{
+	if (!bCanUseParry || IsAirborneCombatState())
+	{
+		return false;
+	}
+
+	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun
+		|| CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::HeavyAttack
+		|| CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery
+		|| CombatState == EGKCombatState::Heal || IsParryMotionState())
+	{
+		return false;
+	}
+
+	return IsGroundLocomotionState() && HasEnoughStamina(GetCombatConfig()->Stamina_Parry);
 }
 
 bool AGKCharacter::CanTransitionToJumpAttack() const
@@ -547,6 +637,12 @@ void AGKCharacter::SetCombatState(EGKCombatState NewState)
 		ResetComboState();
 	}
 
+	if ((NewState == EGKCombatState::HeavyAttack || NewState == EGKCombatState::Parry_Active)
+		&& CombatState != NewState)
+	{
+		ResetComboState();
+	}
+
 	CombatState = NewState;
 	GKCharacterLog::DebugPrint(this, FString::Printf(TEXT("State -> %s"), *UEnum::GetValueAsString(NewState)), FColor::Green);
 }
@@ -574,7 +670,8 @@ void AGKCharacter::UpdateLocomotionStateFromInput()
 	if (CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Evade_Active
 		|| CombatState == EGKCombatState::Evade_Recovery || CombatState == EGKCombatState::Heal
 		|| CombatState == EGKCombatState::HitStun || CombatState == EGKCombatState::Death
-		|| CombatState == EGKCombatState::Jump || CombatState == EGKCombatState::JumpAttack)
+		|| CombatState == EGKCombatState::Jump || CombatState == EGKCombatState::JumpAttack
+		|| CombatState == EGKCombatState::HeavyAttack || IsParryMotionState())
 	{
 		return;
 	}
@@ -666,6 +763,26 @@ void AGKCharacter::TryStartJumpAttack()
 	BeginJumpAttack();
 }
 
+void AGKCharacter::TryStartHeavyAttack()
+{
+	if (CombatState == EGKCombatState::Sprint)
+	{
+		ExitSprintState();
+	}
+
+	BeginHeavyAttack();
+}
+
+void AGKCharacter::TryStartParry()
+{
+	if (CombatState == EGKCombatState::Sprint)
+	{
+		ExitSprintState();
+	}
+
+	BeginParry();
+}
+
 void AGKCharacter::TryStartEvade()
 {
 	if (CombatState == EGKCombatState::Sprint)
@@ -716,6 +833,8 @@ void AGKCharacter::ClearMotionTimers()
 	GetWorldTimerManager().ClearTimer(HealDrinkTimerHandle);
 	GetWorldTimerManager().ClearTimer(EvadePhaseTimerHandle);
 	GetWorldTimerManager().ClearTimer(HitStunTimerHandle);
+	GetWorldTimerManager().ClearTimer(ParryActiveTimerHandle);
+	GetWorldTimerManager().ClearTimer(ParryRecoveryTimerHandle);
 }
 
 void AGKCharacter::BeginComboAttack(int32 ComboIndex)
@@ -940,6 +1059,221 @@ void AGKCharacter::FinishJumpAttack()
 			Velocity.Z = FMath::Min(Velocity.Z, 0.f);
 			Movement->Velocity = Velocity;
 		}
+	}
+
+	SetCombatState(MoveInput.IsNearlyZero() ? EGKCombatState::Idle : EGKCombatState::Run);
+}
+
+void AGKCharacter::SetUnlockHeavyAttack(bool bUnlocked)
+{
+	bCanUseHeavyAttack = bUnlocked;
+}
+
+void AGKCharacter::SetUnlockParry(bool bUnlocked)
+{
+	bCanUseParry = bUnlocked;
+}
+
+void AGKCharacter::BeginHeavyAttack()
+{
+	const UGKCombatConfig* Config = GetCombatConfig();
+	if (!HasEnoughStamina(Config->Stamina_HeavyAttack))
+	{
+		return;
+	}
+
+	ClearMotionTimers();
+	ResetComboState();
+
+	CurrentStamina -= Config->Stamina_HeavyAttack;
+	StaminaRegenBlockedUntil = GetWorld()->GetTimeSeconds() + Config->StaminaRegenDelay;
+
+	ActiveMotionElapsed = 0.f;
+	bHeavyAttackHitApplied = false;
+
+	SetCombatState(EGKCombatState::HeavyAttack);
+	FaceLockOnTargetIfNeeded();
+	BroadcastWeaponSwing(HeavyAttackAudioComboIndex);
+
+	if (Config->HeavyAttackMontage)
+	{
+		PlayAnimMontage(Config->HeavyAttackMontage);
+	}
+
+	GetWorldTimerManager().SetTimer(
+		HitWindowStartTimerHandle,
+		this,
+		&AGKCharacter::OnHeavyAttackHitWindowStart,
+		Config->HeavyAttack_HitWindowStart,
+		false);
+
+	GetWorldTimerManager().SetTimer(
+		HitWindowEndTimerHandle,
+		this,
+		&AGKCharacter::OnHeavyAttackHitWindowEnd,
+		Config->HeavyAttack_HitWindowEnd,
+		false);
+
+	GetWorldTimerManager().SetTimer(
+		MotionTimerHandle,
+		this,
+		&AGKCharacter::FinishHeavyAttack,
+		Config->HeavyAttack_MotionDuration,
+		false);
+}
+
+void AGKCharacter::OnHeavyAttackHitWindowStart()
+{
+	bHeavyAttackHitApplied = false;
+	ProcessHeavyAttackHit();
+}
+
+void AGKCharacter::OnHeavyAttackHitWindowEnd()
+{
+	bHeavyAttackHitApplied = true;
+}
+
+void AGKCharacter::ProcessHeavyAttackHit()
+{
+	if (bHeavyAttackHitApplied || CombatState != EGKCombatState::HeavyAttack)
+	{
+		return;
+	}
+
+	const UGKCombatConfig* Config = GetCombatConfig();
+	const float TraceDistance = GetCapsuleComponent()->GetScaledCapsuleRadius() * 4.f;
+	const FVector Start = GetActorLocation();
+	const FVector End = Start + GetActorForwardVector() * TraceDistance;
+
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(GKHeavyAttackHit), false, this);
+	FHitResult Hit;
+	if (!GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Pawn, Params))
+	{
+		return;
+	}
+
+	AGKEnemyCharacter* Enemy = Cast<AGKEnemyCharacter>(Hit.GetActor());
+	if (!Enemy || !Enemy->IsAlive())
+	{
+		return;
+	}
+
+	bHeavyAttackHitApplied = true;
+	Enemy->ApplyHeavyAttackDamage(Config->HeavyAttack_Damage, Config->Parry_RipostWindow, this);
+}
+
+void AGKCharacter::FinishHeavyAttack()
+{
+	if (CombatState != EGKCombatState::HeavyAttack)
+	{
+		return;
+	}
+
+	SetCombatState(MoveInput.IsNearlyZero() ? EGKCombatState::Idle : EGKCombatState::Run);
+}
+
+void AGKCharacter::BeginParry()
+{
+	const UGKCombatConfig* Config = GetCombatConfig();
+	if (!HasEnoughStamina(Config->Stamina_Parry))
+	{
+		return;
+	}
+
+	ClearMotionTimers();
+	ResetComboState();
+
+	CurrentStamina -= Config->Stamina_Parry;
+	StaminaRegenBlockedUntil = GetWorld()->GetTimeSeconds() + Config->StaminaRegenDelay;
+
+	bParrySucceeded = false;
+
+	SetCombatState(EGKCombatState::Parry_Active);
+	FaceLockOnTargetIfNeeded();
+	BroadcastParryAttempt();
+
+	if (Config->ParryMontage)
+	{
+		PlayAnimMontage(Config->ParryMontage);
+	}
+
+	GetWorldTimerManager().SetTimer(
+		ParryActiveTimerHandle,
+		this,
+		&AGKCharacter::EndParryActivePhase,
+		Config->Parry_ActiveDuration,
+		false);
+}
+
+void AGKCharacter::ProcessParryWindowCheck()
+{
+	if (CombatState != EGKCombatState::Parry_Active || bParrySucceeded)
+	{
+		return;
+	}
+
+	const UGKCombatConfig* Config = GetCombatConfig();
+	TArray<AActor*> FoundEnemies;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGKEnemyCharacter::StaticClass(), FoundEnemies);
+
+	for (AActor* Actor : FoundEnemies)
+	{
+		AGKEnemyCharacter* Enemy = Cast<AGKEnemyCharacter>(Actor);
+		if (!Enemy || !Enemy->IsAlive() || !Enemy->IsAttackHitWindowActive())
+		{
+			continue;
+		}
+
+		if (FVector::Dist(GetActorLocation(), Enemy->GetActorLocation()) > Config->LockOnMaxDistance)
+		{
+			continue;
+		}
+
+		bParrySucceeded = true;
+		Enemy->ApplyParrySuccess(Config->Parry_RipostWindow, this);
+		BroadcastParrySuccess();
+		return;
+	}
+}
+
+void AGKCharacter::EndParryActivePhase()
+{
+	if (CombatState != EGKCombatState::Parry_Active)
+	{
+		return;
+	}
+
+	EnterParryRecoveryPhase();
+}
+
+void AGKCharacter::EnterParryRecoveryPhase()
+{
+	if (CombatState != EGKCombatState::Parry_Active)
+	{
+		return;
+	}
+
+	if (!bParrySucceeded)
+	{
+		BroadcastParryFail();
+	}
+
+	const UGKCombatConfig* Config = GetCombatConfig();
+	SetCombatState(EGKCombatState::Parry_Recovery);
+
+	GetWorldTimerManager().SetTimer(
+		ParryRecoveryTimerHandle,
+		this,
+		&AGKCharacter::FinishParryMotion,
+		Config->Parry_RecoveryDuration,
+		false);
+}
+
+void AGKCharacter::FinishParryMotion()
+{
+	if (CombatState != EGKCombatState::Parry_Recovery)
+	{
+		return;
 	}
 
 	SetCombatState(MoveInput.IsNearlyZero() ? EGKCombatState::Idle : EGKCombatState::Run);
@@ -1225,6 +1559,24 @@ void AGKCharacter::BroadcastHitDamage(const FVector& HitLocation, AActor* Attack
 {
 	GKCharacterLog::DebugPrint(this, TEXT("[AudioHook] OnHitDamage()"));
 	OnHitDamage(HitLocation, Attacker);
+}
+
+void AGKCharacter::BroadcastParryAttempt()
+{
+	GKCharacterLog::DebugPrint(this, TEXT("[AudioHook] OnParryAttempt()"));
+	OnParryAttempt();
+}
+
+void AGKCharacter::BroadcastParrySuccess()
+{
+	GKCharacterLog::DebugPrint(this, TEXT("[AudioHook] OnParrySuccess()"));
+	OnParrySuccess();
+}
+
+void AGKCharacter::BroadcastParryFail()
+{
+	GKCharacterLog::DebugPrint(this, TEXT("[AudioHook] OnParryFail()"));
+	OnParryFail();
 }
 
 void AGKCharacter::ToggleLockOn()
