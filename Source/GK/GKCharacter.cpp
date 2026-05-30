@@ -168,7 +168,7 @@ void AGKCharacter::Tick(float DeltaSeconds)
 		return;
 	}
 
-	if (CombatState == EGKCombatState::Attack)
+	if (CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::JumpAttack)
 	{
 		ActiveMotionElapsed += DeltaSeconds;
 	}
@@ -245,11 +245,21 @@ void AGKCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		EIC->BindAction(LookAction, ETriggerEvent::Triggered, this, &AGKCharacter::HandleLook);
 	}
 
-	if (EvadeSprintAction)
+	if (SprintAction)
 	{
-		EIC->BindAction(EvadeSprintAction, ETriggerEvent::Started, this, &AGKCharacter::HandleEvadeSprintStarted);
-		EIC->BindAction(EvadeSprintAction, ETriggerEvent::Triggered, this, &AGKCharacter::HandleEvadeSprintTriggered);
-		EIC->BindAction(EvadeSprintAction, ETriggerEvent::Completed, this, &AGKCharacter::HandleEvadeSprintCompleted);
+		EIC->BindAction(SprintAction, ETriggerEvent::Started, this, &AGKCharacter::HandleSprintStarted);
+		EIC->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AGKCharacter::HandleSprintTriggered);
+		EIC->BindAction(SprintAction, ETriggerEvent::Completed, this, &AGKCharacter::HandleSprintCompleted);
+	}
+
+	if (JumpAction)
+	{
+		EIC->BindAction(JumpAction, ETriggerEvent::Started, this, &AGKCharacter::HandleJumpStarted);
+	}
+
+	if (EvadeAction)
+	{
+		EIC->BindAction(EvadeAction, ETriggerEvent::Started, this, &AGKCharacter::HandleEvadeStarted);
 	}
 
 	if (AttackAction)
@@ -283,7 +293,8 @@ void AGKCharacter::ApplyMovementFromCachedInput()
 
 	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun
 		|| CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery
-		|| CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Heal)
+		|| CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Heal
+		|| CombatState == EGKCombatState::JumpAttack)
 	{
 		return;
 	}
@@ -300,77 +311,76 @@ void AGKCharacter::HandleLook(const FInputActionValue& Value)
 	AddControllerPitchInput(Axis.Y);
 }
 
-void AGKCharacter::HandleEvadeSprintStarted(const FInputActionValue& Value)
+void AGKCharacter::HandleSprintStarted(const FInputActionValue& /*Value*/)
 {
-	if (bEvadeSprintInputLocked || CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun)
+	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun)
 	{
 		return;
 	}
 
-	bEvadeSprintPressed = true;
-	bEvadeSprintGate = true;
-	EvadeSprintPressTime = GetWorld()->GetTimeSeconds();
-
-	const UGKCombatConfig* Config = GetCombatConfig();
-	GetWorldTimerManager().ClearTimer(SprintHoldTimerHandle);
-	GetWorldTimerManager().SetTimer(
-		SprintHoldTimerHandle,
-		this,
-		&AGKCharacter::OnSprintHoldThresholdElapsed,
-		Config->SprintHoldThreshold,
-		false);
+	bSprintPressed = true;
+	if (CanTransitionToSprint())
+	{
+		EnterSprintState();
+	}
 }
 
-void AGKCharacter::HandleEvadeSprintTriggered(const FInputActionValue& /*Value*/)
+void AGKCharacter::HandleSprintTriggered(const FInputActionValue& /*Value*/)
 {
 	if (CombatState == EGKCombatState::Sprint)
 	{
 		ApplyMovementFromCachedInput();
+		return;
+	}
+
+	if (bSprintPressed && CanTransitionToSprint())
+	{
+		EnterSprintState();
 	}
 }
 
-void AGKCharacter::HandleEvadeSprintCompleted(const FInputActionValue& Value)
+void AGKCharacter::HandleSprintCompleted(const FInputActionValue& /*Value*/)
 {
-	GetWorldTimerManager().ClearTimer(SprintHoldTimerHandle);
+	bSprintPressed = false;
 
 	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun)
 	{
-		bEvadeSprintPressed = false;
 		return;
 	}
 
-	if (bEvadeSprintGate)
-	{
-		if (CanTransitionToEvade())
-		{
-			TryStartEvade();
-		}
-		bEvadeSprintGate = false;
-	}
-	else if (CombatState == EGKCombatState::Sprint)
+	if (CombatState == EGKCombatState::Sprint)
 	{
 		ExitSprintState();
 	}
-
-	bEvadeSprintPressed = false;
 }
 
-void AGKCharacter::OnSprintHoldThresholdElapsed()
+void AGKCharacter::HandleJumpStarted(const FInputActionValue& /*Value*/)
 {
-	if (!bEvadeSprintGate || !bEvadeSprintPressed || bEvadeSprintInputLocked)
+	if (CanTransitionToJump())
 	{
-		return;
+		TryStartJump();
 	}
+}
 
-	if (CanTransitionToSprint())
+void AGKCharacter::HandleEvadeStarted(const FInputActionValue& /*Value*/)
+{
+	if (CanTransitionToEvade())
 	{
-		EnterSprintState();
-		bEvadeSprintGate = false;
+		TryStartEvade();
 	}
 }
 
 void AGKCharacter::HandleAttackStarted(const FInputActionValue& Value)
 {
+	if (CombatState == EGKCombatState::Jump)
+	{
+		if (CanTransitionToJumpAttack())
+		{
+			TryStartJumpAttack();
+		}
+		return;
+	}
+
 	if (CombatState == EGKCombatState::Attack)
 	{
 		const FGKComboAttackRow* Row = GetComboRow(CurrentComboIndex);
@@ -412,12 +422,18 @@ void AGKCharacter::HandleLockOnStarted(const FInputActionValue& Value)
 bool AGKCharacter::CanAcceptCombatInput() const
 {
 	return CombatState != EGKCombatState::Death && CombatState != EGKCombatState::HitStun
-		&& CombatState != EGKCombatState::Evade_Active && CombatState != EGKCombatState::Evade_Recovery;
+		&& CombatState != EGKCombatState::Evade_Active && CombatState != EGKCombatState::Evade_Recovery
+		&& CombatState != EGKCombatState::Jump && CombatState != EGKCombatState::JumpAttack;
+}
+
+bool AGKCharacter::IsAirborneCombatState() const
+{
+	return CombatState == EGKCombatState::Jump || CombatState == EGKCombatState::JumpAttack;
 }
 
 bool AGKCharacter::CanTransitionToEvade() const
 {
-	if (bEvadeSprintInputLocked || !CanAcceptCombatInput())
+	if (!CanAcceptCombatInput())
 	{
 		return false;
 	}
@@ -453,8 +469,30 @@ bool AGKCharacter::CanTransitionToSprint() const
 	return CurrentStamina > 0.f;
 }
 
+bool AGKCharacter::CanTransitionToJump() const
+{
+	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun)
+	{
+		return false;
+	}
+
+	const UCharacterMovementComponent* Movement = GetCharacterMovement();
+	if (!Movement || !Movement->IsMovingOnGround())
+	{
+		return false;
+	}
+
+	return CombatState == EGKCombatState::Idle || CombatState == EGKCombatState::Run
+		|| CombatState == EGKCombatState::Sprint;
+}
+
 bool AGKCharacter::CanTransitionToAttack() const
 {
+	if (IsAirborneCombatState())
+	{
+		return false;
+	}
+
 	if (CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Death
 		|| CombatState == EGKCombatState::HitStun || CombatState == EGKCombatState::Evade_Active
 		|| CombatState == EGKCombatState::Evade_Recovery || CombatState == EGKCombatState::Heal)
@@ -464,6 +502,16 @@ bool AGKCharacter::CanTransitionToAttack() const
 
 	const FGKComboAttackRow* Row = GetComboRow(0);
 	return Row && HasEnoughStamina(Row->StaminaCost);
+}
+
+bool AGKCharacter::CanTransitionToJumpAttack() const
+{
+	if (CombatState != EGKCombatState::Jump)
+	{
+		return false;
+	}
+
+	return HasEnoughStamina(GetCombatConfig()->Stamina_JumpAttack);
 }
 
 bool AGKCharacter::CanTransitionToHeal() const
@@ -494,6 +542,11 @@ void AGKCharacter::SetCombatState(EGKCombatState NewState)
 		ResetComboState();
 	}
 
+	if (NewState == EGKCombatState::Jump && CombatState != EGKCombatState::Jump)
+	{
+		ResetComboState();
+	}
+
 	CombatState = NewState;
 	GKCharacterLog::DebugPrint(this, FString::Printf(TEXT("State -> %s"), *UEnum::GetValueAsString(NewState)), FColor::Green);
 }
@@ -520,7 +573,8 @@ void AGKCharacter::UpdateLocomotionStateFromInput()
 {
 	if (CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Evade_Active
 		|| CombatState == EGKCombatState::Evade_Recovery || CombatState == EGKCombatState::Heal
-		|| CombatState == EGKCombatState::HitStun || CombatState == EGKCombatState::Death)
+		|| CombatState == EGKCombatState::HitStun || CombatState == EGKCombatState::Death
+		|| CombatState == EGKCombatState::Jump || CombatState == EGKCombatState::JumpAttack)
 	{
 		return;
 	}
@@ -588,6 +642,28 @@ void AGKCharacter::TryStartAttack()
 	}
 
 	BeginComboAttack(0);
+}
+
+void AGKCharacter::TryStartJump()
+{
+	if (CombatState == EGKCombatState::Sprint)
+	{
+		ExitSprintState();
+	}
+
+	UCharacterMovementComponent* Movement = GetCharacterMovement();
+	if (!Movement || !Movement->IsMovingOnGround())
+	{
+		return;
+	}
+
+	Jump();
+	SetCombatState(EGKCombatState::Jump);
+}
+
+void AGKCharacter::TryStartJumpAttack()
+{
+	BeginJumpAttack();
 }
 
 void AGKCharacter::TryStartEvade()
@@ -761,6 +837,114 @@ void AGKCharacter::FinishAttackMotion()
 	ResetComboState();
 }
 
+void AGKCharacter::BeginJumpAttack()
+{
+	const UGKCombatConfig* Config = GetCombatConfig();
+	if (!HasEnoughStamina(Config->Stamina_JumpAttack))
+	{
+		return;
+	}
+
+	ClearMotionTimers();
+	ResetComboState();
+
+	CurrentStamina -= Config->Stamina_JumpAttack;
+	StaminaRegenBlockedUntil = GetWorld()->GetTimeSeconds() + Config->StaminaRegenDelay;
+
+	ActiveMotionElapsed = 0.f;
+	bJumpAttackHitApplied = false;
+
+	SetCombatState(EGKCombatState::JumpAttack);
+	FaceLockOnTargetIfNeeded();
+	BroadcastWeaponSwing(JumpAttackAudioComboIndex);
+
+	if (Config->JumpAttackMontage)
+	{
+		PlayAnimMontage(Config->JumpAttackMontage);
+	}
+
+	GetWorldTimerManager().SetTimer(
+		HitWindowStartTimerHandle,
+		this,
+		&AGKCharacter::OnJumpAttackHitWindowStart,
+		Config->JumpAttack_HitWindowStart,
+		false);
+
+	GetWorldTimerManager().SetTimer(
+		HitWindowEndTimerHandle,
+		this,
+		&AGKCharacter::OnJumpAttackHitWindowEnd,
+		Config->JumpAttack_HitWindowEnd,
+		false);
+
+	GetWorldTimerManager().SetTimer(
+		MotionTimerHandle,
+		this,
+		&AGKCharacter::FinishJumpAttack,
+		Config->JumpAttack_MotionDuration,
+		false);
+}
+
+void AGKCharacter::OnJumpAttackHitWindowStart()
+{
+	bJumpAttackHitApplied = false;
+	ProcessJumpAttackHit();
+}
+
+void AGKCharacter::OnJumpAttackHitWindowEnd()
+{
+	bJumpAttackHitApplied = true;
+}
+
+void AGKCharacter::ProcessJumpAttackHit()
+{
+	if (bJumpAttackHitApplied || CombatState != EGKCombatState::JumpAttack)
+	{
+		return;
+	}
+
+	const UGKCombatConfig* Config = GetCombatConfig();
+	const float TraceDistance = GetCapsuleComponent()->GetScaledCapsuleRadius() * 4.f;
+	const FVector Start = GetActorLocation();
+	const FVector End = Start + GetActorForwardVector() * TraceDistance;
+
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(GKJumpAttackHit), false, this);
+	FHitResult Hit;
+	if (!GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Pawn, Params))
+	{
+		return;
+	}
+
+	AGKEnemyCharacter* Enemy = Cast<AGKEnemyCharacter>(Hit.GetActor());
+	if (!Enemy || !Enemy->IsAlive())
+	{
+		return;
+	}
+
+	bJumpAttackHitApplied = true;
+	Enemy->ApplyComboDamage(Config->JumpAttack_Damage, JumpAttackAudioComboIndex, this);
+}
+
+void AGKCharacter::FinishJumpAttack()
+{
+	if (CombatState != EGKCombatState::JumpAttack)
+	{
+		return;
+	}
+
+	if (UCharacterMovementComponent* Movement = GetCharacterMovement())
+	{
+		if (Movement->IsFalling())
+		{
+			FVector Velocity = Movement->Velocity;
+			Velocity.Z = FMath::Min(Velocity.Z, 0.f);
+			Movement->Velocity = Velocity;
+		}
+	}
+
+	SetCombatState(MoveInput.IsNearlyZero() ? EGKCombatState::Idle : EGKCombatState::Run);
+}
+
 void AGKCharacter::BeginEvadeMotion()
 {
 	const UGKCombatConfig* Config = GetCombatConfig();
@@ -775,7 +959,6 @@ void AGKCharacter::BeginEvadeMotion()
 	CurrentStamina -= Config->Stamina_Evade;
 	StaminaRegenBlockedUntil = GetWorld()->GetTimeSeconds() + Config->StaminaRegenDelay;
 
-	bEvadeSprintInputLocked = true;
 	bIsInvulnerable = true;
 	SetCombatState(EGKCombatState::Evade_Active);
 	BroadcastEvadeStart();
@@ -814,7 +997,6 @@ void AGKCharacter::EnterEvadeRecoveryPhase()
 
 void AGKCharacter::FinishEvadeMotion()
 {
-	bEvadeSprintInputLocked = false;
 	BroadcastEvadeEnd();
 	SetCombatState(MoveInput.IsNearlyZero() ? EGKCombatState::Idle : EGKCombatState::Run);
 }
@@ -949,6 +1131,16 @@ void AGKCharacter::EnterHitStun(AActor* Attacker, const FVector& HitLocation)
 void AGKCharacter::FinishHitStun()
 {
 	if (CombatState == EGKCombatState::HitStun)
+	{
+		SetCombatState(MoveInput.IsNearlyZero() ? EGKCombatState::Idle : EGKCombatState::Run);
+	}
+}
+
+void AGKCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+
+	if (CombatState == EGKCombatState::Jump)
 	{
 		SetCombatState(MoveInput.IsNearlyZero() ? EGKCombatState::Idle : EGKCombatState::Run);
 	}
@@ -1124,6 +1316,8 @@ void AGKCharacter::UpdateLockOn(float DeltaSeconds)
 
 void AGKCharacter::ApplyCharacterTuning()
 {
+	const UGKCombatConfig* Config = GetCombatConfig();
+
 	GetCapsuleComponent()->InitCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
 
 	UCharacterMovementComponent* Movement = GetCharacterMovement();
@@ -1132,10 +1326,9 @@ void AGKCharacter::ApplyCharacterTuning()
 	Movement->MinAnalogWalkSpeed = MinAnalogWalkSpeed;
 	Movement->BrakingDecelerationWalking = BrakingDecelerationWalking;
 	Movement->BrakingDecelerationFalling = BrakingDecelerationFalling;
-	Movement->JumpZVelocity = 0.f;
-	Movement->AirControl = 0.f;
+	Movement->JumpZVelocity = Config->Jump_ZVelocity;
+	Movement->AirControl = Config->Jump_AirControl;
 
-	const UGKCombatConfig* Config = GetCombatConfig();
 	Movement->MaxWalkSpeed = (CombatState == EGKCombatState::Sprint) ? Config->SprintSpeed : Config->RunSpeed;
 	CameraBoom->TargetArmLength = CameraArmLength;
 }

@@ -206,6 +206,9 @@ def get_or_create_bp_gk_character(
     imc: unreal.InputMappingContext,
     ia_move: unreal.InputAction,
     ia_look: unreal.InputAction,
+    ia_sprint: unreal.InputAction,
+    ia_jump: unreal.InputAction,
+    ia_evade: unreal.InputAction,
     ia_attack: unreal.InputAction,
     ia_heal: unreal.InputAction,
     ia_lock_on: unreal.InputAction,
@@ -241,7 +244,9 @@ def get_or_create_bp_gk_character(
     bp_cdo.set_editor_property("default_mapping_context", imc)
     bp_cdo.set_editor_property("move_action", ia_move)
     bp_cdo.set_editor_property("look_action", ia_look)
-    bp_cdo.set_editor_property("evade_sprint_action", None)
+    bp_cdo.set_editor_property("sprint_action", ia_sprint)
+    bp_cdo.set_editor_property("jump_action", ia_jump)
+    bp_cdo.set_editor_property("evade_action", ia_evade)
     bp_cdo.set_editor_property("attack_action", ia_attack)
     bp_cdo.set_editor_property("heal_action", ia_heal)
     bp_cdo.set_editor_property("lock_on_action", ia_lock_on)
@@ -250,7 +255,7 @@ def get_or_create_bp_gk_character(
 
     compile_blueprint(bp)
     save_asset(bp)
-    log("Configured BP_GKCharacter defaults (v3: evade_sprint_action cleared)")
+    log("Configured BP_GKCharacter defaults (v3: sprint/jump/evade actions wired)")
     return bp
 
 
@@ -304,6 +309,9 @@ def main() -> None:
         imc,
         ia_move,
         ia_look,
+        v3_actions["IA_Sprint"],
+        v3_actions["IA_Jump"],
+        v3_actions["IA_Evade"],
         v3_actions["IA_Attack"],
         v3_actions["IA_Heal"],
         v3_actions["IA_LockOn"],

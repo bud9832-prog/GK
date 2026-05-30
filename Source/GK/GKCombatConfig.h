@@ -64,6 +64,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina")
 	float Stamina_SprintPerSec = 12.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina")
+	float Stamina_JumpAttack = 22.f;
+
 	// Movement
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 	float RunSpeed = 450.f;
@@ -71,8 +74,28 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 	float SprintSpeed = 700.f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
-	float SprintHoldThreshold = 0.18f;
+	// Jump
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Jump")
+	float Jump_ZVelocity = 700.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Jump")
+	float Jump_AirControl = 0.2f;
+
+	// Jump Attack
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "JumpAttack")
+	TObjectPtr<UAnimMontage> JumpAttackMontage = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "JumpAttack")
+	float JumpAttack_Damage = 25.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "JumpAttack")
+	float JumpAttack_MotionDuration = 0.6f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "JumpAttack")
+	float JumpAttack_HitWindowStart = 0.20f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "JumpAttack")
+	float JumpAttack_HitWindowEnd = 0.40f;
 
 	// Combo — Data Table reference
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combo")

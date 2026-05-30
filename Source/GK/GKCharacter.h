@@ -26,6 +26,8 @@ enum class EGKCombatState : uint8
 	Evade_Active    UMETA(DisplayName = "Evade Active"),
 	Evade_Recovery  UMETA(DisplayName = "Evade Recovery"),
 	Heal            UMETA(DisplayName = "Heal"),
+	Jump            UMETA(DisplayName = "Jump"),
+	JumpAttack      UMETA(DisplayName = "Jump Attack"),
 	HitStun         UMETA(DisplayName = "Hit Stun"),
 	Death           UMETA(DisplayName = "Death"),
 };
@@ -92,6 +94,7 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void Landed(const FHitResult& Hit) override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator,
 		AActor* DamageCauser) override;
 
@@ -150,6 +153,8 @@ protected:
 	int32 HealItemRemaining = 0;
 
 private:
+	static constexpr int32 JumpAttackAudioComboIndex = 3;
+
 	// --- Enhanced Input ---
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputMappingContext> DefaultMappingContext;
@@ -161,7 +166,13 @@ private:
 	TObjectPtr<UInputAction> LookAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> EvadeSprintAction;
+	TObjectPtr<UInputAction> SprintAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> JumpAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> EvadeAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> AttackAction;
@@ -176,15 +187,12 @@ private:
 	bool bLockOnActive = false;
 
 	FVector2D MoveInput = FVector2D::ZeroVector;
-	bool bEvadeSprintPressed = false;
-	bool bEvadeSprintGate = false;
-	bool bEvadeSprintInputLocked = false;
-	float EvadeSprintPressTime = 0.f;
-	FTimerHandle SprintHoldTimerHandle;
+	bool bSprintPressed = false;
 
 	bool bHealDrinkApplied = false;
 	bool bHealCompleted = false;
 	bool bAttackHitApplied = false;
+	bool bJumpAttackHitApplied = false;
 	bool bIsInvulnerable = false;
 
 	float StaminaRegenBlockedUntil = 0.f;
@@ -211,14 +219,15 @@ private:
 	void HandleMove(const FInputActionValue& Value);
 	void HandleLook(const FInputActionValue& Value);
 	void ApplyMovementFromCachedInput();
-	void HandleEvadeSprintStarted(const FInputActionValue& Value);
-	void HandleEvadeSprintTriggered(const FInputActionValue& Value);
-	void HandleEvadeSprintCompleted(const FInputActionValue& Value);
+	void HandleSprintStarted(const FInputActionValue& Value);
+	void HandleSprintTriggered(const FInputActionValue& Value);
+	void HandleSprintCompleted(const FInputActionValue& Value);
+	void HandleJumpStarted(const FInputActionValue& Value);
+	void HandleEvadeStarted(const FInputActionValue& Value);
 	void HandleAttackStarted(const FInputActionValue& Value);
 	void HandleHealStarted(const FInputActionValue& Value);
 	void HandleLockOnStarted(const FInputActionValue& Value);
 
-	void OnSprintHoldThresholdElapsed();
 	void UpdateLocomotionStateFromInput();
 	void UpdateSprintStaminaDrain(float DeltaSeconds);
 	void UpdateStaminaRegen(float DeltaSeconds);
@@ -227,8 +236,11 @@ private:
 	bool CanAcceptCombatInput() const;
 	bool CanTransitionToEvade() const;
 	bool CanTransitionToSprint() const;
+	bool CanTransitionToJump() const;
 	bool CanTransitionToAttack() const;
+	bool CanTransitionToJumpAttack() const;
 	bool CanTransitionToHeal() const;
+	bool IsAirborneCombatState() const;
 	bool HasEnoughStamina(float Cost) const;
 
 	void SetCombatState(EGKCombatState NewState);
@@ -237,6 +249,8 @@ private:
 	void ApplySprintSpeed();
 
 	void TryStartAttack();
+	void TryStartJump();
+	void TryStartJumpAttack();
 	void TryStartEvade();
 	void TryStartHeal();
 	void EnterSprintState();
@@ -247,6 +261,12 @@ private:
 	void OnAttackHitWindowStart();
 	void OnAttackHitWindowEnd();
 	void ProcessAttackHit();
+
+	void BeginJumpAttack();
+	void OnJumpAttackHitWindowStart();
+	void OnJumpAttackHitWindowEnd();
+	void ProcessJumpAttackHit();
+	void FinishJumpAttack();
 
 	void BeginEvadeMotion();
 	void EnterEvadeRecoveryPhase();
