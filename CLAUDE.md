@@ -65,7 +65,9 @@
 - **C++ 모듈:** `Source/GK/` (`AGKCharacter`, `AGKGameMode`)
 - **기획 산출물 폴더:** `Design/` — P가 작성·관리하는 `.md` 기획서 저장소
   - `Design/GAME_DESIGN_PILLARS.md` — 게임 디자인 기본 정의서 (단일 기준, 2026-05-29 P 1차 산출물)
-  - `Design/SKILL_0X_*_SPEC.md` — Skill별 상세 명세서 (예정)
+  - `Design/SKILL_01_COMBAT_SPEC.md` — Stage 1 전투 명세 (v2 확정 2026-05-29)
+  - `Design/INPUT_MAPPING.md` — **키 입력 단일 출처 (SSOT, 2026-05-30 신설)**
+  - `Design/SKILL_0X_*_SPEC.md` — 후속 Skill별 상세 명세서 (예정)
 - **아트 어셋 체크리스트:** `ART_ASSET_CHECKLIST.md` (P 갱신, Pillars 의존성 반영)
 - **기획 변수:** Data Asset·테이블·에디터 — `AI_AGENTS_GUIDE.md` §3-4
 - **보류 항목 전체:** `AI_AGENTS_GUIDE.md` §4

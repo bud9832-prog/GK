@@ -214,18 +214,18 @@ stateDiagram-v2
 
 ## 4. 입력 매핑 (Enhanced Input — KiHoon 위임 → P 확정 2026-05-29)
 
-### 4-1. Input Action 목록 (확정)
+### 4-1. Input Action 목록 — 본 명세 사용 IA
 
-| Input Action | 키보드 | 게임패드 | 용도 |
-| :--- | :--- | :--- | :--- |
-| `IA_Move` | WASD | 좌스틱 | 이동 |
-| `IA_Look` | 마우스 | 우스틱 | 카메라 |
-| `IA_EvadeSprint` | Space | B(Xbox) | 회피(tap) + 달리기(hold) — 통합 입력 |
-| `IA_Attack` | 마우스 좌 | RB | 약공격 (콤보 1·2·3) |
-| `IA_Heal` | E | X(Xbox) | 회복약 |
-| `IA_LockOn` | 마우스 휠 클릭 | R3 | 락온 토글 |
+> **키 매핑 단일 출처:** `Design/INPUT_MAPPING.md` (2026-05-30 신설). 본 절은 Skill 1 범위에서 사용하는 IA만 나열한다. 키보드·게임패드 바인딩·아셋 위치는 INPUT_MAPPING.md 참조.
 
-본 표는 IMC(`Content/Input/IMC_Default`) 구성 기준. 키 변경은 IMC에서 처리, C++ 재컴파일 불필요.
+| Input Action | 본 명세에서의 용도 |
+| :--- | :--- |
+| `IA_Move` | 캐릭터 이동 (§5-1) |
+| `IA_Look` | 카메라 회전 |
+| `IA_EvadeSprint` | 회피(tap, §5-3) + 달리기(hold, §5-1) — 통합 입력. tap/hold 분기 안전장치는 §4-2 |
+| `IA_Attack` | 약공격 콤보 1·2·3 (§5-2). 콤보 입력 윈도우 내 재입력 = 콤보 진행 |
+| `IA_Heal` | 회복약 사용 (§5-4) |
+| `IA_LockOn` | 락온 토글 (§5-5) |
 
 ### 4-2. `IA_EvadeSprint` — tap/hold 분기 (D 권고 #2 반영)
 

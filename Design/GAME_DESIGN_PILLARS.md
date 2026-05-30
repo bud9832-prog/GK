@@ -199,7 +199,7 @@
 - **회복약 (`IA_Heal`):** E 또는 X(Xbox).
 - 모든 매핑은 Enhanced Input(`Content/Input/IMC_Default`) 위에 구성.
 
-세부 키 바인딩·tap/hold 안전장치 수치는 `Design/SKILL_01_COMBAT_SPEC.md` §4에서 확정.
+**키 매핑 단일 출처 (2026-05-30 신설):** `Design/INPUT_MAPPING.md` — 전체 IA 표·아셋 위치·충돌 체크리스트·후속 IA 예약. 본 §8은 원칙만 유지하고 세부 매핑·변경 절차는 INPUT_MAPPING.md를 기준으로 한다. tap/hold 안전장치 수치는 `Design/SKILL_01_COMBAT_SPEC.md` §4-2에서 확정.
 
 ---
 

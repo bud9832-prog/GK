@@ -15,7 +15,8 @@
 | 피처 | 상태 | 선행 조건 | 다음 액션 |
 | :--- | :---: | :--- | :--- |
 | `Design/GAME_DESIGN_PILLARS.md` — 게임 디자인 기본 정의서 | 🟢 KiHoon 최종 승인 (2026-05-29, v2 입력 §7-2/§8 포함) + D 조건부 통과 4건 SKILL_01 반영 완료 | — | 후속 변경 시 동기화만 |
-| `Design/SKILL_01_COMBAT_SPEC.md` v2 — Stage 1 전투 명세 (Run/Sprint, 1·2·3 콤보, 회피, 회복약, 락온) | 🟢 KiHoon 최종 승인 + D 기술 검증 완료 (2026-05-29) — §11-1 수치 12건 확정, §11-2 P 위임 확정, §11-3 D 위임 3건 채택 | KiHoon·D 명세 검증 완료 | 명세 변경 필요 시에만 동기화 |
+| `Design/SKILL_01_COMBAT_SPEC.md` v2 — Stage 1 전투 명세 (Run/Sprint, 1·2·3 콤보, 회피, 회복약, 락온) | 🟢 KiHoon 최종 승인 + D 기술 검증 완료 (2026-05-29) — §11-1 수치 12건 확정, §11-2 P 위임 확정, §11-3 D 위임 3건 채택 | KiHoon·D 명세 검증 완료 | 명세 변경 필요 시에만 동기화. §4-1 슬림화로 INPUT_MAPPING.md 참조 정리 (2026-05-30) |
+| `Design/INPUT_MAPPING.md` — 입력 매핑 단일 출처(SSOT) | 🟡 P 1차 산출물 제출 (2026-05-30) | SKILL_01 v2 §4 + Pillars §8 + B 자동화 스크립트 키 매핑 통합. SKILL_01 §4-1·Pillars §8 참조 동기화 완료 | KiHoon 1차 검토 → (필요 시) D 기술 검증 → 후속 Skill 추가 시 갱신 |
 | Skill 1: Combat System Builder 구현 | 🔴 **보류 종료 (최종 Go 미승인, 2026-05-29)** | PIE 런타임 증거 미수집 (tap/hold, Sprint→Evade, 상태 전이, LogWwise Error 0) | 재개 트리거: `SKILL_01 v2 보류 건 재개 - C 런타임 증거 수집부터` |
 
 ## 3) 보류/추가 검토 항목
