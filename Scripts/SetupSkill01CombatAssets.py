@@ -1,4 +1,5 @@
-# SKILL_01 v2 — Input / Data / BP editor setup (Agent B)
+# SKILL_01 v3 — Input / Data / BP editor setup (Agent B)
+# SSOT: Design/INPUT_MAPPING.md §2
 # Run: UnrealEditor-Cmd.exe GK.uproject -ExecutePythonScript=Scripts/SetupSkill01CombatAssets.py
 
 import os
@@ -13,6 +14,21 @@ CSV_PATH = os.path.join(unreal.Paths.project_content_dir(), "Data", "DT_ComboAtt
 
 ASSET_TOOLS = unreal.AssetToolsHelpers.get_asset_tools()
 EDITOR_ASSET_LIB = unreal.EditorAssetLibrary
+
+# INPUT_MAPPING.md §2 — keyboard bindings (single key, single IA)
+V3_COMBAT_KEY_MAPPINGS = [
+    ("IA_Sprint", "LeftShift"),
+    ("IA_Jump", "SpaceBar"),
+    ("IA_Evade", "LeftControl"),
+    ("IA_Attack", "LeftMouseButton"),
+    ("IA_HeavyAttack", "RightMouseButton"),
+    ("IA_Heal", "E"),
+    ("IA_LockOn", "MiddleMouseButton"),
+    ("IA_Ultimate", "G"),
+]
+
+DEPRECATED_INPUT_ACTIONS = ["IA_EvadeSprint"]
+PRESERVED_IMC_ACTIONS = {"IA_Move", "IA_Look"}
 
 
 def log(msg: str) -> None:
@@ -31,11 +47,14 @@ def compile_blueprint(bp: unreal.Blueprint) -> None:
         unreal.KismetCompilerLibrary.compile_blueprint(bp)
 
 
-def get_or_create_input_action(name: str) -> unreal.InputAction:
+def get_or_create_boolean_input_action(name: str) -> unreal.InputAction:
     asset_path = f"{INPUT_ACTIONS_PATH}/{name}"
     if EDITOR_ASSET_LIB.does_asset_exist(asset_path):
+        action = EDITOR_ASSET_LIB.load_asset(asset_path)
+        action.set_editor_property("value_type", unreal.InputActionValueType.BOOLEAN)
+        save_asset(action)
         log(f"InputAction exists: {name}")
-        return EDITOR_ASSET_LIB.load_asset(asset_path)
+        return action
 
     template_path = f"{INPUT_ACTIONS_PATH}/IA_Move"
     if not EDITOR_ASSET_LIB.does_asset_exist(template_path):
@@ -52,6 +71,92 @@ def get_or_create_input_action(name: str) -> unreal.InputAction:
     save_asset(action)
     log(f"Created InputAction: {name}")
     return action
+
+
+def load_required_input_action(name: str) -> unreal.InputAction:
+    asset_path = f"{INPUT_ACTIONS_PATH}/{name}"
+    action = EDITOR_ASSET_LIB.load_asset(asset_path)
+    if not action:
+        raise RuntimeError(f"Required InputAction not found: {name}")
+    return action
+
+
+def deprecate_v1_input_actions() -> None:
+    for action_name in DEPRECATED_INPUT_ACTIONS:
+        asset_path = f"{INPUT_ACTIONS_PATH}/{action_name}"
+        if EDITOR_ASSET_LIB.does_asset_exist(asset_path):
+            EDITOR_ASSET_LIB.delete_asset(asset_path)
+            log(f"Deprecated: removed {action_name}")
+
+
+def make_key(key_name: str):
+    if hasattr(unreal, "string_to_key"):
+        return unreal.string_to_key(key_name)
+    key = unreal.Key()
+    key.set_editor_property("key_name", unreal.Name(key_name))
+    return key
+
+
+def create_mapping(action: unreal.InputAction, key_name: str) -> unreal.EnhancedActionKeyMapping:
+    mapping = unreal.EnhancedActionKeyMapping()
+    mapping.set_editor_property("action", action)
+    mapping.set_editor_property("key", make_key(key_name))
+    return mapping
+
+
+def validate_imc_mappings(mappings) -> None:
+    key_to_action = {}
+    for mapping in mappings:
+        action = mapping.get_editor_property("action")
+        key = str(mapping.get_editor_property("key"))
+        action_name = action.get_name() if action else "None"
+
+        if key in key_to_action and key_to_action[key] != action_name:
+            raise RuntimeError(
+                f"Duplicate key mapping detected: {key} -> {key_to_action[key]} and {action_name}"
+            )
+        key_to_action[key] = action_name
+
+        if action_name in DEPRECATED_INPUT_ACTIONS:
+            raise RuntimeError(f"v1 deprecated action still mapped: {action_name} on {key}")
+
+    log(f"IMC conflict check passed ({len(key_to_action)} unique keys among combat mappings)")
+
+
+def log_imc_summary(mappings) -> None:
+    for mapping in mappings:
+        action = mapping.get_editor_property("action")
+        key = mapping.get_editor_property("key")
+        if not action:
+            continue
+        log(f"IMC: {action.get_name()} -> {key}")
+
+
+def rebuild_imc_default_v3(actions: dict[str, unreal.InputAction]) -> unreal.InputMappingContext:
+    imc = EDITOR_ASSET_LIB.load_asset(f"{PROJECT_CONTENT}/Input/IMC_Default")
+    if not imc:
+        raise RuntimeError("IMC_Default not found")
+
+    existing_mappings = list(imc.get_editor_property("mappings"))
+    preserved_mappings = [
+        mapping
+        for mapping in existing_mappings
+        if mapping.get_editor_property("action")
+        and mapping.get_editor_property("action").get_name() in PRESERVED_IMC_ACTIONS
+    ]
+
+    new_mappings = list(preserved_mappings)
+    for action_name, key_name in V3_COMBAT_KEY_MAPPINGS:
+        action = actions[action_name]
+        new_mappings.append(create_mapping(action, key_name))
+        log(f"Mapped {action_name} -> {key_name}")
+
+    validate_imc_mappings(new_mappings)
+    imc.set_editor_property("mappings", new_mappings)
+    save_asset(imc)
+    log("Rebuilt IMC_Default for INPUT_MAPPING.md v3")
+    log_imc_summary(new_mappings)
+    return imc
 
 
 def create_combo_data_table() -> unreal.DataTable:
@@ -95,55 +200,12 @@ def get_or_create_data_asset(name: str, asset_class) -> unreal.Object:
     return asset
 
 
-def make_key(key_name: str):
-    if hasattr(unreal, "string_to_key"):
-        return unreal.string_to_key(key_name)
-    key = unreal.Key()
-    key.set_editor_property("key_name", unreal.Name(key_name))
-    return key
-
-
-def add_mapping(imc: unreal.InputMappingContext, action: unreal.InputAction, key_name: str) -> None:
-    mapping = unreal.EnhancedActionKeyMapping()
-    mapping.set_editor_property("action", action)
-    mapping.set_editor_property("key", make_key(key_name))
-
-    mappings = list(imc.get_editor_property("mappings"))
-    for existing in mappings:
-        if existing.get_editor_property("action") == action and str(existing.get_editor_property("key")) == key_name:
-            return
-
-    mappings.append(mapping)
-    imc.set_editor_property("mappings", mappings)
-    log(f"Mapped {action.get_name()} -> {key_name}")
-
-
-def setup_imc_default(
-    ia_evade_sprint: unreal.InputAction,
-    ia_attack: unreal.InputAction,
-    ia_heal: unreal.InputAction,
-    ia_lock_on: unreal.InputAction,
-) -> None:
-    imc = EDITOR_ASSET_LIB.load_asset(f"{PROJECT_CONTENT}/Input/IMC_Default")
-    if not imc:
-        raise RuntimeError("IMC_Default not found")
-
-    add_mapping(imc, ia_evade_sprint, "SpaceBar")
-    add_mapping(imc, ia_attack, "LeftMouseButton")
-    add_mapping(imc, ia_heal, "E")
-    add_mapping(imc, ia_lock_on, "MiddleMouseButton")
-
-    save_asset(imc)
-    log("Updated IMC_Default")
-
-
 def get_or_create_bp_gk_character(
     combat_config: unreal.GKCombatConfig,
     player_stats_config: unreal.GKPlayerStatsConfig,
     imc: unreal.InputMappingContext,
     ia_move: unreal.InputAction,
     ia_look: unreal.InputAction,
-    ia_evade_sprint: unreal.InputAction,
     ia_attack: unreal.InputAction,
     ia_heal: unreal.InputAction,
     ia_lock_on: unreal.InputAction,
@@ -179,7 +241,7 @@ def get_or_create_bp_gk_character(
     bp_cdo.set_editor_property("default_mapping_context", imc)
     bp_cdo.set_editor_property("move_action", ia_move)
     bp_cdo.set_editor_property("look_action", ia_look)
-    bp_cdo.set_editor_property("evade_sprint_action", ia_evade_sprint)
+    bp_cdo.set_editor_property("evade_sprint_action", None)
     bp_cdo.set_editor_property("attack_action", ia_attack)
     bp_cdo.set_editor_property("heal_action", ia_heal)
     bp_cdo.set_editor_property("lock_on_action", ia_lock_on)
@@ -188,7 +250,7 @@ def get_or_create_bp_gk_character(
 
     compile_blueprint(bp)
     save_asset(bp)
-    log("Configured BP_GKCharacter defaults")
+    log("Configured BP_GKCharacter defaults (v3: evade_sprint_action cleared)")
     return bp
 
 
@@ -207,17 +269,25 @@ def update_game_mode_default_pawn(bp_gk_character: unreal.Blueprint) -> None:
 
 
 def main() -> None:
-    log("Starting SKILL_01 editor asset setup")
+    log("Starting SKILL_01 v3 input sync (INPUT_MAPPING.md SSOT)")
 
-    ia_move = EDITOR_ASSET_LIB.load_asset(f"{INPUT_ACTIONS_PATH}/IA_Move")
-    ia_look = EDITOR_ASSET_LIB.load_asset(f"{INPUT_ACTIONS_PATH}/IA_Look")
-    if not ia_move or not ia_look:
-        raise RuntimeError("IA_Move / IA_Look must exist before running this script")
+    ia_move = load_required_input_action("IA_Move")
+    ia_look = load_required_input_action("IA_Look")
 
-    ia_evade_sprint = get_or_create_input_action("IA_EvadeSprint")
-    ia_attack = get_or_create_input_action("IA_Attack")
-    ia_heal = get_or_create_input_action("IA_Heal")
-    ia_lock_on = get_or_create_input_action("IA_LockOn")
+    deprecate_v1_input_actions()
+
+    v3_actions = {
+        "IA_Sprint": get_or_create_boolean_input_action("IA_Sprint"),
+        "IA_Jump": get_or_create_boolean_input_action("IA_Jump"),
+        "IA_Evade": get_or_create_boolean_input_action("IA_Evade"),
+        "IA_Attack": get_or_create_boolean_input_action("IA_Attack"),
+        "IA_HeavyAttack": get_or_create_boolean_input_action("IA_HeavyAttack"),
+        "IA_Heal": get_or_create_boolean_input_action("IA_Heal"),
+        "IA_LockOn": get_or_create_boolean_input_action("IA_LockOn"),
+        "IA_Ultimate": get_or_create_boolean_input_action("IA_Ultimate"),
+    }
+
+    imc = rebuild_imc_default_v3(v3_actions)
 
     combo_table = create_combo_data_table()
 
@@ -228,19 +298,15 @@ def main() -> None:
     player_stats_config = get_or_create_data_asset("DA_PlayerStatsConfig", unreal.GKPlayerStatsConfig)
     save_asset(player_stats_config)
 
-    imc = EDITOR_ASSET_LIB.load_asset(f"{PROJECT_CONTENT}/Input/IMC_Default")
-    setup_imc_default(ia_evade_sprint, ia_attack, ia_heal, ia_lock_on)
-
     bp_gk = get_or_create_bp_gk_character(
         combat_config,
         player_stats_config,
         imc,
         ia_move,
         ia_look,
-        ia_evade_sprint,
-        ia_attack,
-        ia_heal,
-        ia_lock_on,
+        v3_actions["IA_Attack"],
+        v3_actions["IA_Heal"],
+        v3_actions["IA_LockOn"],
     )
 
     update_game_mode_default_pawn(bp_gk)
@@ -249,7 +315,7 @@ def main() -> None:
     EDITOR_ASSET_LIB.save_directory(INPUT_ACTIONS_PATH, only_if_is_dirty=False, recursive=True)
     EDITOR_ASSET_LIB.save_directory(BP_PATH, only_if_is_dirty=False, recursive=True)
 
-    log("SKILL_01 editor asset setup complete")
+    log("SKILL_01 v3 input sync complete")
 
 
 if __name__ == "__main__":
