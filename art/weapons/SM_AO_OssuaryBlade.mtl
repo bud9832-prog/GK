@@ -1,0 +1,42 @@
+# Ashen Ossuary hero-style sword materials.
+# Engine import source only. Final PBR material work should be done in Unreal.
+
+newmtl AO_BlackenedSteel
+Ka 0.010 0.011 0.013
+Kd 0.045 0.048 0.052
+Ks 0.250 0.250 0.230
+Ns 85.000
+d 1.000
+illum 2
+
+newmtl AO_BrightWornEdge
+Ka 0.160 0.155 0.140
+Kd 0.780 0.740 0.660
+Ks 0.720 0.690 0.600
+Ns 150.000
+d 1.000
+illum 2
+
+newmtl AO_AshBoneCarving
+Ka 0.170 0.155 0.125
+Kd 0.680 0.610 0.470
+Ks 0.180 0.160 0.120
+Ns 40.000
+d 1.000
+illum 2
+
+newmtl AO_DeadLeather
+Ka 0.018 0.014 0.011
+Kd 0.075 0.055 0.040
+Ks 0.060 0.050 0.040
+Ns 18.000
+d 1.000
+illum 2
+
+newmtl AO_DimEmber
+Ka 0.300 0.070 0.018
+Kd 0.850 0.180 0.045
+Ks 0.300 0.080 0.020
+Ns 45.000
+d 1.000
+illum 2

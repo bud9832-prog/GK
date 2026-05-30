@@ -50,7 +50,7 @@ KiHoon 갱신: Stage 1 시작부터 1·2·3타 콤보 제공. 콤보 2/3 몽타�
 
 | 분류 | 항목 | 용도 | 우선순위 | 상태 | 비고 |
 | :--- | :--- | :--- | :---: | :--- | :--- |
-| 무기 | 플레이어 기본 무기 메쉬 | 콤보 판정·시각화 | 높음 | 수령 완료 | 프로토타입: `art/weapons/SM_AO_ProtoSword.obj` + `hand_r_socket` 후보. 최종 무기 메쉬는 별도 확정 필요 |
+| 무기 | 플레이어 기본 무기 메쉬 | 콤보 판정·시각화 | 높음 | 수령 완료 | 히어로 프로토타입: `art/weapons/SM_AO_OssuaryBlade.obj` + `hand_r_socket` 후보. 소켓/스케일 검증 후 최종 무기 메쉬 확정 필요 |
 | 애니메이션 | 콤보 1타 몽타주 | Skill 1 핵심 액션 (ComboIndex=0) | 높음 | 요청 전 | 루트모션 여부 명시, `OnWeaponSwing(0)` 호출 타이밍, HitWindow/ComboInputWindow 노티 구간 명시 |
 | 애니메이션 | 콤보 2타 몽타주 | Stage 1 시작 가능 (ComboIndex=1) | 높음 | 요청 전 | `OnWeaponSwing(1)`, 1타와 자연스러운 연결 |
 | 애니메이션 | 콤보 3타 몽타주 | Stage 1 시작 가능 (ComboIndex=2 — 콤보 종결타) | 높음 | 요청 전 | `OnWeaponSwing(2)`, 가장 묵직한 마무리 모션 |
