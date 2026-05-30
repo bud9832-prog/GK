@@ -1,0 +1,131 @@
+# SM_GK_OssuaryBlade.mtl
+# Material definitions for SM_GK_OssuaryBlade.obj
+#
+# Unreal Engine PBR mapping guide:
+#   Kd  → Base Color (RGB)
+#   Ks  → Specular / Roughness hint (bright = low roughness)
+#   Ns  → Roughness inverse proxy (high Ns = sharper = low roughness)
+#   d   → Opacity (1.0 = fully opaque)
+#   map_Kd  → placeholder for T_GK_[slot]_BC  (Base Color)
+#
+# In Unreal: create MI_GK_OssuaryBlade_[slot] from the base material,
+# then assign the corresponding T_GK_OssuaryBlade_[slot]_* texture sets.
+# Suggested texture set prefix: T_GK_OssuaryBlade_
+# ---------------------------------------------------------------
+
+# ---------------------------------------------------------------
+# M_GK_Blade_DarkSteel
+# Oxidised black iron — flat faces of the blade diamond
+# Base Color: near-black with very subtle blue-grey tint
+# Roughness: 0.72  Metallic: 0.95
+# ---------------------------------------------------------------
+newmtl M_GK_Blade_DarkSteel
+Ka 0.03 0.03 0.04
+Kd 0.06 0.06 0.08
+Ks 0.30 0.30 0.32
+Ns 40.0
+d  1.0
+illum 2
+
+# ---------------------------------------------------------------
+# M_GK_Blade_BrightEdge
+# Worn bright metal — the honed cutting edges
+# Catches light strongly; visible scratch lines in texture
+# Base Color: light silver-steel
+# Roughness: 0.25  Metallic: 1.0
+# ---------------------------------------------------------------
+newmtl M_GK_Blade_BrightEdge
+Ka 0.12 0.12 0.12
+Kd 0.55 0.55 0.58
+Ks 0.90 0.90 0.90
+Ns 180.0
+d  1.0
+illum 2
+
+# ---------------------------------------------------------------
+# M_GK_Guard_Iron
+# Hammered dark iron crossguard — slightly rougher than blade
+# Heavy surface texture; forged, not polished
+# Base Color: dark charcoal iron
+# Roughness: 0.80  Metallic: 0.90
+# ---------------------------------------------------------------
+newmtl M_GK_Guard_Iron
+Ka 0.04 0.04 0.04
+Kd 0.07 0.07 0.07
+Ks 0.20 0.20 0.20
+Ns 25.0
+d  1.0
+illum 2
+
+# ---------------------------------------------------------------
+# M_GK_Guard_Bone
+# Aged ivory bone inlay panels on guard face
+# Off-white / warm cream; slightly translucent subsurface hint
+# Base Color: warm ivory with faint grey veins
+# Roughness: 0.60  Metallic: 0.0  (SSS: 0.15 in UE)
+# ---------------------------------------------------------------
+newmtl M_GK_Guard_Bone
+Ka 0.18 0.15 0.11
+Kd 0.72 0.65 0.52
+Ks 0.25 0.22 0.18
+Ns 20.0
+d  1.0
+illum 2
+
+# ---------------------------------------------------------------
+# M_GK_Grip_Leather
+# Dried dark leather grip wrap — tight diagonal strips
+# Very dark brown, cracked and worn; low sheen
+# Roughness: 0.90  Metallic: 0.0
+# ---------------------------------------------------------------
+newmtl M_GK_Grip_Leather
+Ka 0.04 0.02 0.01
+Kd 0.10 0.06 0.03
+Ks 0.08 0.06 0.04
+Ns 8.0
+d  1.0
+illum 1
+
+# ---------------------------------------------------------------
+# M_GK_Grip_Band
+# Raised bone-iron binding bands at grip intervals
+# Alternates between the iron and bone palette; mid sheen
+# Base Color: dark iron with bone accent
+# Roughness: 0.65  Metallic: 0.50
+# ---------------------------------------------------------------
+newmtl M_GK_Grip_Band
+Ka 0.06 0.05 0.04
+Kd 0.18 0.16 0.13
+Ks 0.35 0.32 0.28
+Ns 45.0
+d  1.0
+illum 2
+
+# ---------------------------------------------------------------
+# M_GK_Pommel_Iron
+# Dark iron collar at grip/pommel junction — polished band
+# Slightly brighter than guard iron (hand-contact wear)
+# Roughness: 0.55  Metallic: 0.95
+# ---------------------------------------------------------------
+newmtl M_GK_Pommel_Iron
+Ka 0.05 0.05 0.06
+Kd 0.10 0.10 0.12
+Ks 0.55 0.55 0.58
+Ns 80.0
+d  1.0
+illum 2
+
+# ---------------------------------------------------------------
+# M_GK_Pommel_Bone
+# Carved ossuary bone pommel — large sculpted cap
+# Cream with deep carved shadow channels; faint ember crack
+# In Unreal: add subtle emissive (0.12, 0.04, 0.01) in crack channels
+# Roughness: 0.55  Metallic: 0.0
+# ---------------------------------------------------------------
+newmtl M_GK_Pommel_Bone
+Ka 0.14 0.11 0.08
+Kd 0.65 0.58 0.46
+Ks 0.30 0.26 0.20
+Ns 30.0
+d  1.0
+illum 2
