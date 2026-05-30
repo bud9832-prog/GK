@@ -153,6 +153,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Parry")
 	float Parry_RipostWindow = 1.5f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HitStun")
+	float HitStun_Duration = 0.55f;
+
 	/** §7-3 default rows — used when ComboAttackTable is not assigned in editor. */
 	static UDataTable* CreateDefaultComboAttackTable(UObject* Outer);
 

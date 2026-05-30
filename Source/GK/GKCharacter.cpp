@@ -12,8 +12,17 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
+
+#if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
+static TAutoConsoleVariable<int32> CVarParryDebugForceSuccess(
+	TEXT("gk.ParryDebugForceSuccess"),
+	0,
+	TEXT("Dev only: 1 = force parry success on nearest in-range enemy during Parry_Active"),
+	ECVF_Cheat);
+#endif
 
 namespace GKCharacterLog
 {
@@ -176,7 +185,7 @@ void AGKCharacter::Tick(float DeltaSeconds)
 
 	if (CombatState == EGKCombatState::Parry_Active)
 	{
-		ProcessParryWindowCheck();
+		TickParryWindow();
 	}
 
 	UpdateLockOn(DeltaSeconds);
@@ -316,11 +325,7 @@ void AGKCharacter::ApplyMovementFromCachedInput()
 		return;
 	}
 
-	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun
-		|| CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery
-		|| CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Heal
-		|| CombatState == EGKCombatState::JumpAttack || CombatState == EGKCombatState::HeavyAttack
-		|| CombatState == EGKCombatState::Parry_Active || CombatState == EGKCombatState::Parry_Recovery)
+	if (IsLocomotionBlockedState())
 	{
 		return;
 	}
@@ -339,7 +344,7 @@ void AGKCharacter::HandleLook(const FInputActionValue& Value)
 
 void AGKCharacter::HandleSprintStarted(const FInputActionValue& /*Value*/)
 {
-	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun)
+	if (IsFullyBlockedCombatState())
 	{
 		return;
 	}
@@ -369,7 +374,7 @@ void AGKCharacter::HandleSprintCompleted(const FInputActionValue& /*Value*/)
 {
 	bSprintPressed = false;
 
-	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun)
+	if (IsFullyBlockedCombatState())
 	{
 		return;
 	}
@@ -463,8 +468,12 @@ void AGKCharacter::HandleLockOnStarted(const FInputActionValue& Value)
 
 bool AGKCharacter::CanAcceptCombatInput() const
 {
-	return CombatState != EGKCombatState::Death && CombatState != EGKCombatState::HitStun
-		&& CombatState != EGKCombatState::Evade_Active && CombatState != EGKCombatState::Evade_Recovery
+	if (IsFullyBlockedCombatState())
+	{
+		return false;
+	}
+
+	return CombatState != EGKCombatState::Evade_Active && CombatState != EGKCombatState::Evade_Recovery
 		&& CombatState != EGKCombatState::Jump && CombatState != EGKCombatState::JumpAttack
 		&& CombatState != EGKCombatState::Parry_Active && CombatState != EGKCombatState::Parry_Recovery;
 }
@@ -487,10 +496,9 @@ bool AGKCharacter::IsParryMotionState() const
 
 bool AGKCharacter::CanTransitionToEvade() const
 {
-	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun
-		|| CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery
-		|| CombatState == EGKCombatState::Jump || CombatState == EGKCombatState::JumpAttack
-		|| CombatState == EGKCombatState::Parry_Active)
+	if (IsFullyBlockedCombatState() || CombatState == EGKCombatState::Evade_Active
+		|| CombatState == EGKCombatState::Evade_Recovery || CombatState == EGKCombatState::Jump
+		|| CombatState == EGKCombatState::JumpAttack || CombatState == EGKCombatState::Parry_Active)
 	{
 		return false;
 	}
@@ -524,7 +532,7 @@ bool AGKCharacter::CanTransitionToSprint() const
 
 bool AGKCharacter::CanTransitionToJump() const
 {
-	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun)
+	if (IsFullyBlockedCombatState())
 	{
 		return false;
 	}
@@ -546,10 +554,10 @@ bool AGKCharacter::CanTransitionToAttack() const
 		return false;
 	}
 
-	if (CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Death
-		|| CombatState == EGKCombatState::HitStun || CombatState == EGKCombatState::Evade_Active
-		|| CombatState == EGKCombatState::Evade_Recovery || CombatState == EGKCombatState::Heal
-		|| CombatState == EGKCombatState::HeavyAttack || IsParryMotionState())
+	if (CombatState == EGKCombatState::Attack || IsFullyBlockedCombatState()
+		|| CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery
+		|| CombatState == EGKCombatState::Heal || CombatState == EGKCombatState::HeavyAttack
+		|| IsParryMotionState())
 	{
 		return false;
 	}
@@ -565,10 +573,10 @@ bool AGKCharacter::CanTransitionToHeavyAttack() const
 		return false;
 	}
 
-	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun
-		|| CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::HeavyAttack
-		|| CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery
-		|| CombatState == EGKCombatState::Heal || IsParryMotionState())
+	if (IsFullyBlockedCombatState() || CombatState == EGKCombatState::Attack
+		|| CombatState == EGKCombatState::HeavyAttack || CombatState == EGKCombatState::Evade_Active
+		|| CombatState == EGKCombatState::Evade_Recovery || CombatState == EGKCombatState::Heal
+		|| IsParryMotionState())
 	{
 		return false;
 	}
@@ -583,10 +591,10 @@ bool AGKCharacter::CanTransitionToParry() const
 		return false;
 	}
 
-	if (CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun
-		|| CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::HeavyAttack
-		|| CombatState == EGKCombatState::Evade_Active || CombatState == EGKCombatState::Evade_Recovery
-		|| CombatState == EGKCombatState::Heal || IsParryMotionState())
+	if (IsFullyBlockedCombatState() || CombatState == EGKCombatState::Attack
+		|| CombatState == EGKCombatState::HeavyAttack || CombatState == EGKCombatState::Evade_Active
+		|| CombatState == EGKCombatState::Evade_Recovery || CombatState == EGKCombatState::Heal
+		|| IsParryMotionState())
 	{
 		return false;
 	}
@@ -618,6 +626,58 @@ bool AGKCharacter::CanTransitionToHeal() const
 bool AGKCharacter::HasEnoughStamina(float Cost) const
 {
 	return CurrentStamina >= Cost;
+}
+
+bool AGKCharacter::IsFullyBlockedCombatState() const
+{
+	return CombatState == EGKCombatState::Death || CombatState == EGKCombatState::HitStun;
+}
+
+bool AGKCharacter::IsLocomotionBlockedState() const
+{
+	return CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Evade_Active
+		|| CombatState == EGKCombatState::Evade_Recovery || CombatState == EGKCombatState::Heal
+		|| CombatState == EGKCombatState::HitStun || CombatState == EGKCombatState::Death
+		|| CombatState == EGKCombatState::Jump || CombatState == EGKCombatState::JumpAttack
+		|| CombatState == EGKCombatState::HeavyAttack || IsParryMotionState();
+}
+
+bool AGKCharacter::PrepareWeaponAction(float StaminaCost)
+{
+	if (!HasEnoughStamina(StaminaCost))
+	{
+		return false;
+	}
+
+	ClearMotionTimers();
+	ResetComboState();
+
+	CurrentStamina -= StaminaCost;
+	StaminaRegenBlockedUntil = GetWorld()->GetTimeSeconds() + GetCombatConfig()->StaminaRegenDelay;
+	ActiveMotionElapsed = 0.f;
+	return true;
+}
+
+AGKEnemyCharacter* AGKCharacter::ExecuteMeleeLineTrace(FName StatTag) const
+{
+	const float TraceDistance = GetCapsuleComponent()->GetScaledCapsuleRadius() * 4.f;
+	const FVector Start = GetActorLocation();
+	const FVector End = Start + GetActorForwardVector() * TraceDistance;
+
+	FCollisionQueryParams Params(StatTag, false, this);
+	FHitResult Hit;
+	if (!GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Pawn, Params))
+	{
+		return nullptr;
+	}
+
+	AGKEnemyCharacter* Enemy = Cast<AGKEnemyCharacter>(Hit.GetActor());
+	if (!Enemy || !Enemy->IsAlive())
+	{
+		return nullptr;
+	}
+
+	return Enemy;
 }
 
 void AGKCharacter::SetCombatState(EGKCombatState NewState)
@@ -667,11 +727,7 @@ void AGKCharacter::ApplySprintSpeed()
 
 void AGKCharacter::UpdateLocomotionStateFromInput()
 {
-	if (CombatState == EGKCombatState::Attack || CombatState == EGKCombatState::Evade_Active
-		|| CombatState == EGKCombatState::Evade_Recovery || CombatState == EGKCombatState::Heal
-		|| CombatState == EGKCombatState::HitStun || CombatState == EGKCombatState::Death
-		|| CombatState == EGKCombatState::Jump || CombatState == EGKCombatState::JumpAttack
-		|| CombatState == EGKCombatState::HeavyAttack || IsParryMotionState())
+	if (IsLocomotionBlockedState())
 	{
 		return;
 	}
@@ -840,20 +896,14 @@ void AGKCharacter::ClearMotionTimers()
 void AGKCharacter::BeginComboAttack(int32 ComboIndex)
 {
 	const FGKComboAttackRow* Row = GetComboRow(ComboIndex);
-	if (!Row || !HasEnoughStamina(Row->StaminaCost))
+	if (!Row || !PrepareWeaponAction(Row->StaminaCost))
 	{
 		SetCombatState(MoveInput.IsNearlyZero() ? EGKCombatState::Idle : EGKCombatState::Run);
 		ResetComboState();
 		return;
 	}
 
-	ClearMotionTimers();
-	ResetComboState();
-
 	CurrentComboIndex = ComboIndex;
-	const UGKCombatConfig* Config = GetCombatConfig();
-	CurrentStamina -= Row->StaminaCost;
-	StaminaRegenBlockedUntil = GetWorld()->GetTimeSeconds() + Config->StaminaRegenDelay;
 
 	SetCombatState(EGKCombatState::Attack);
 	FaceLockOnTargetIfNeeded();
@@ -910,19 +960,8 @@ void AGKCharacter::ProcessAttackHit()
 		return;
 	}
 
-	const float TraceDistance = GetCapsuleComponent()->GetScaledCapsuleRadius() * 4.f;
-	const FVector Start = GetActorLocation();
-	const FVector End = Start + GetActorForwardVector() * TraceDistance;
-
-	FCollisionQueryParams Params(SCENE_QUERY_STAT(GKComboHit), false, this);
-	FHitResult Hit;
-	if (!GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Pawn, Params))
-	{
-		return;
-	}
-
-	AGKEnemyCharacter* Enemy = Cast<AGKEnemyCharacter>(Hit.GetActor());
-	if (!Enemy || !Enemy->IsAlive())
+	AGKEnemyCharacter* Enemy = ExecuteMeleeLineTrace(TEXT("GKComboHit"));
+	if (!Enemy)
 	{
 		return;
 	}
@@ -959,18 +998,11 @@ void AGKCharacter::FinishAttackMotion()
 void AGKCharacter::BeginJumpAttack()
 {
 	const UGKCombatConfig* Config = GetCombatConfig();
-	if (!HasEnoughStamina(Config->Stamina_JumpAttack))
+	if (!PrepareWeaponAction(Config->Stamina_JumpAttack))
 	{
 		return;
 	}
 
-	ClearMotionTimers();
-	ResetComboState();
-
-	CurrentStamina -= Config->Stamina_JumpAttack;
-	StaminaRegenBlockedUntil = GetWorld()->GetTimeSeconds() + Config->StaminaRegenDelay;
-
-	ActiveMotionElapsed = 0.f;
 	bJumpAttackHitApplied = false;
 
 	SetCombatState(EGKCombatState::JumpAttack);
@@ -1023,19 +1055,8 @@ void AGKCharacter::ProcessJumpAttackHit()
 	}
 
 	const UGKCombatConfig* Config = GetCombatConfig();
-	const float TraceDistance = GetCapsuleComponent()->GetScaledCapsuleRadius() * 4.f;
-	const FVector Start = GetActorLocation();
-	const FVector End = Start + GetActorForwardVector() * TraceDistance;
-
-	FCollisionQueryParams Params(SCENE_QUERY_STAT(GKJumpAttackHit), false, this);
-	FHitResult Hit;
-	if (!GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Pawn, Params))
-	{
-		return;
-	}
-
-	AGKEnemyCharacter* Enemy = Cast<AGKEnemyCharacter>(Hit.GetActor());
-	if (!Enemy || !Enemy->IsAlive())
+	AGKEnemyCharacter* Enemy = ExecuteMeleeLineTrace(TEXT("GKJumpAttackHit"));
+	if (!Enemy)
 	{
 		return;
 	}
@@ -1077,18 +1098,11 @@ void AGKCharacter::SetUnlockParry(bool bUnlocked)
 void AGKCharacter::BeginHeavyAttack()
 {
 	const UGKCombatConfig* Config = GetCombatConfig();
-	if (!HasEnoughStamina(Config->Stamina_HeavyAttack))
+	if (!PrepareWeaponAction(Config->Stamina_HeavyAttack))
 	{
 		return;
 	}
 
-	ClearMotionTimers();
-	ResetComboState();
-
-	CurrentStamina -= Config->Stamina_HeavyAttack;
-	StaminaRegenBlockedUntil = GetWorld()->GetTimeSeconds() + Config->StaminaRegenDelay;
-
-	ActiveMotionElapsed = 0.f;
 	bHeavyAttackHitApplied = false;
 
 	SetCombatState(EGKCombatState::HeavyAttack);
@@ -1141,25 +1155,14 @@ void AGKCharacter::ProcessHeavyAttackHit()
 	}
 
 	const UGKCombatConfig* Config = GetCombatConfig();
-	const float TraceDistance = GetCapsuleComponent()->GetScaledCapsuleRadius() * 4.f;
-	const FVector Start = GetActorLocation();
-	const FVector End = Start + GetActorForwardVector() * TraceDistance;
-
-	FCollisionQueryParams Params(SCENE_QUERY_STAT(GKHeavyAttackHit), false, this);
-	FHitResult Hit;
-	if (!GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Pawn, Params))
-	{
-		return;
-	}
-
-	AGKEnemyCharacter* Enemy = Cast<AGKEnemyCharacter>(Hit.GetActor());
-	if (!Enemy || !Enemy->IsAlive())
+	AGKEnemyCharacter* Enemy = ExecuteMeleeLineTrace(TEXT("GKHeavyAttackHit"));
+	if (!Enemy)
 	{
 		return;
 	}
 
 	bHeavyAttackHitApplied = true;
-	Enemy->ApplyHeavyAttackDamage(Config->HeavyAttack_Damage, Config->Parry_RipostWindow, this);
+	Enemy->ApplyHeavyAttackDamage(Config->HeavyAttack_Damage, 0.f, this);
 }
 
 void AGKCharacter::FinishHeavyAttack()
@@ -1175,16 +1178,10 @@ void AGKCharacter::FinishHeavyAttack()
 void AGKCharacter::BeginParry()
 {
 	const UGKCombatConfig* Config = GetCombatConfig();
-	if (!HasEnoughStamina(Config->Stamina_Parry))
+	if (!PrepareWeaponAction(Config->Stamina_Parry))
 	{
 		return;
 	}
-
-	ClearMotionTimers();
-	ResetComboState();
-
-	CurrentStamina -= Config->Stamina_Parry;
-	StaminaRegenBlockedUntil = GetWorld()->GetTimeSeconds() + Config->StaminaRegenDelay;
 
 	bParrySucceeded = false;
 
@@ -1205,7 +1202,22 @@ void AGKCharacter::BeginParry()
 		false);
 }
 
-void AGKCharacter::ProcessParryWindowCheck()
+void AGKCharacter::CompleteParrySuccess(AGKEnemyCharacter* Enemy)
+{
+	if (!Enemy || bParrySucceeded || CombatState != EGKCombatState::Parry_Active)
+	{
+		return;
+	}
+
+	const UGKCombatConfig* Config = GetCombatConfig();
+	bParrySucceeded = true;
+	GetWorldTimerManager().ClearTimer(ParryActiveTimerHandle);
+	Enemy->ApplyParrySuccess(Config->Parry_RipostWindow, this);
+	BroadcastParrySuccess();
+	SetCombatState(MoveInput.IsNearlyZero() ? EGKCombatState::Idle : EGKCombatState::Run);
+}
+
+void AGKCharacter::TickParryWindow()
 {
 	if (CombatState != EGKCombatState::Parry_Active || bParrySucceeded)
 	{
@@ -1213,6 +1225,29 @@ void AGKCharacter::ProcessParryWindowCheck()
 	}
 
 	const UGKCombatConfig* Config = GetCombatConfig();
+
+#if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
+	if (CVarParryDebugForceSuccess.GetValueOnGameThread() != 0)
+	{
+		TArray<AActor*> DebugEnemies;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGKEnemyCharacter::StaticClass(), DebugEnemies);
+		for (AActor* Actor : DebugEnemies)
+		{
+			AGKEnemyCharacter* Enemy = Cast<AGKEnemyCharacter>(Actor);
+			if (!Enemy || !Enemy->IsAlive())
+			{
+				continue;
+			}
+
+			if (FVector::Dist(GetActorLocation(), Enemy->GetActorLocation()) <= Config->LockOnMaxDistance)
+			{
+				CompleteParrySuccess(Enemy);
+				return;
+			}
+		}
+	}
+#endif
+
 	TArray<AActor*> FoundEnemies;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGKEnemyCharacter::StaticClass(), FoundEnemies);
 
@@ -1229,16 +1264,14 @@ void AGKCharacter::ProcessParryWindowCheck()
 			continue;
 		}
 
-		bParrySucceeded = true;
-		Enemy->ApplyParrySuccess(Config->Parry_RipostWindow, this);
-		BroadcastParrySuccess();
+		CompleteParrySuccess(Enemy);
 		return;
 	}
 }
 
 void AGKCharacter::EndParryActivePhase()
 {
-	if (CombatState != EGKCombatState::Parry_Active)
+	if (CombatState != EGKCombatState::Parry_Active || bParrySucceeded)
 	{
 		return;
 	}
@@ -1253,10 +1286,7 @@ void AGKCharacter::EnterParryRecoveryPhase()
 		return;
 	}
 
-	if (!bParrySucceeded)
-	{
-		BroadcastParryFail();
-	}
+	BroadcastParryFail();
 
 	const UGKCombatConfig* Config = GetCombatConfig();
 	SetCombatState(EGKCombatState::Parry_Recovery);
@@ -1453,12 +1483,11 @@ void AGKCharacter::EnterHitStun(AActor* Attacker, const FVector& HitLocation)
 	BroadcastHitDamage(HitLocation, Attacker);
 
 	const UGKCombatConfig* Config = GetCombatConfig();
-	const float HitStunDuration = Config->Evade_TotalDuration - Config->Evade_IFrameDuration;
 	GetWorldTimerManager().SetTimer(
 		HitStunTimerHandle,
 		this,
 		&AGKCharacter::FinishHitStun,
-		HitStunDuration,
+		Config->HitStun_Duration,
 		false);
 }
 

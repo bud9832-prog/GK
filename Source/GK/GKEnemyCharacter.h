@@ -38,11 +38,17 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	EGKHitReaction LastHitReaction = EGKHitReaction::None;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enemy|Down")
+	float DownDuration = 1.5f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Enemy|Down")
+	bool bIsDown = false;
+
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void ApplyComboDamage(float Damage, int32 ComboIndex, AActor* InstigatorActor);
 
 	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void ApplyHeavyAttackDamage(float Damage, float DownDuration, AActor* InstigatorActor);
+	void ApplyHeavyAttackDamage(float Damage, float DownStateDuration, AActor* InstigatorActor);
 
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void ApplyParrySuccess(float RipostWindowDuration, AActor* InstigatorActor);
@@ -65,9 +71,12 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	bool bAttackHitWindowActive = false;
 
-	float DownStateExpiresAt = 0.f;
+	FTimerHandle DownRecoveryTimerHandle;
 
 	void EnterDownState(float Duration, AActor* InstigatorActor);
+
+	UFUNCTION()
+	void OnDownRecoveryExpired();
 
 	virtual void BeginPlay() override;
 };

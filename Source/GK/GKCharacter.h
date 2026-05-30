@@ -276,6 +276,11 @@ private:
 	void UpdateStaminaRegen(float DeltaSeconds);
 	void UpdateLockOn(float DeltaSeconds);
 
+	bool IsFullyBlockedCombatState() const;
+	bool IsLocomotionBlockedState() const;
+	bool PrepareWeaponAction(float StaminaCost);
+	AGKEnemyCharacter* ExecuteMeleeLineTrace(FName StatTag) const;
+
 	bool CanAcceptCombatInput() const;
 	bool CanTransitionToEvade() const;
 	bool CanTransitionToSprint() const;
@@ -324,7 +329,9 @@ private:
 	void FinishHeavyAttack();
 
 	void BeginParry();
-	void ProcessParryWindowCheck();
+	/** Tick-based polling while Parry_Active — checks enemy attack hit windows each frame. */
+	void TickParryWindow();
+	void CompleteParrySuccess(AGKEnemyCharacter* Enemy);
 	void EndParryActivePhase();
 	void EnterParryRecoveryPhase();
 	void FinishParryMotion();

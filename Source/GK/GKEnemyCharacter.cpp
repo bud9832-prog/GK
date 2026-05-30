@@ -4,6 +4,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "TimerManager.h"
 #include "UObject/ConstructorHelpers.h"
 
 AGKEnemyCharacter::AGKEnemyCharacter()
@@ -31,16 +32,12 @@ void AGKEnemyCharacter::BeginPlay()
 	Super::BeginPlay();
 	CurrentHP = MaxHP;
 	LastHitReaction = EGKHitReaction::None;
+	bIsDown = false;
 }
 
 void AGKEnemyCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	if (LastHitReaction == EGKHitReaction::Down && GetWorld()->GetTimeSeconds() >= DownStateExpiresAt)
-	{
-		LastHitReaction = EGKHitReaction::None;
-	}
 }
 
 void AGKEnemyCharacter::ApplyComboDamage(float Damage, int32 ComboIndex, AActor* InstigatorActor)
@@ -55,6 +52,8 @@ void AGKEnemyCharacter::ApplyComboDamage(float Damage, int32 ComboIndex, AActor*
 	if (CurrentHP <= 0.f)
 	{
 		LastHitReaction = EGKHitReaction::Death;
+		bIsDown = false;
+		GetWorldTimerManager().ClearTimer(DownRecoveryTimerHandle);
 		UE_LOG(LogTemp, Log, TEXT("[Enemy] Death — ComboIndex=%d Instigator=%s"), ComboIndex,
 			InstigatorActor ? *InstigatorActor->GetName() : TEXT("None"));
 		if (GEngine)
@@ -74,7 +73,7 @@ void AGKEnemyCharacter::ApplyComboDamage(float Damage, int32 ComboIndex, AActor*
 	}
 }
 
-void AGKEnemyCharacter::ApplyHeavyAttackDamage(float Damage, float DownDuration, AActor* InstigatorActor)
+void AGKEnemyCharacter::ApplyHeavyAttackDamage(float Damage, float DownStateDuration, AActor* InstigatorActor)
 {
 	if (!IsAlive())
 	{
@@ -86,12 +85,15 @@ void AGKEnemyCharacter::ApplyHeavyAttackDamage(float Damage, float DownDuration,
 	if (CurrentHP <= 0.f)
 	{
 		LastHitReaction = EGKHitReaction::Death;
+		bIsDown = false;
+		GetWorldTimerManager().ClearTimer(DownRecoveryTimerHandle);
 		UE_LOG(LogTemp, Log, TEXT("[Enemy] Death — HeavyAttack Instigator=%s"),
 			InstigatorActor ? *InstigatorActor->GetName() : TEXT("None"));
 		return;
 	}
 
-	EnterDownState(DownDuration, InstigatorActor);
+	const float EffectiveDownDuration = DownStateDuration > 0.f ? DownStateDuration : DownDuration;
+	EnterDownState(EffectiveDownDuration, InstigatorActor);
 	UE_LOG(LogTemp, Log, TEXT("[Enemy] Down — HeavyAttack Damage=%.1f HP=%.1f"), Damage, CurrentHP);
 	if (GEngine)
 	{
@@ -123,11 +125,28 @@ void AGKEnemyCharacter::SetAttackHitWindowActive(bool bActive)
 
 bool AGKEnemyCharacter::IsInDownState() const
 {
-	return LastHitReaction == EGKHitReaction::Down && GetWorld()->GetTimeSeconds() < DownStateExpiresAt;
+	return bIsDown && LastHitReaction == EGKHitReaction::Down;
 }
 
-void AGKEnemyCharacter::EnterDownState(float Duration, AActor* InstigatorActor)
+void AGKEnemyCharacter::EnterDownState(float Duration, AActor* /*InstigatorActor*/)
 {
 	LastHitReaction = EGKHitReaction::Down;
-	DownStateExpiresAt = GetWorld()->GetTimeSeconds() + Duration;
+	bIsDown = true;
+
+	GetWorldTimerManager().ClearTimer(DownRecoveryTimerHandle);
+	GetWorldTimerManager().SetTimer(
+		DownRecoveryTimerHandle,
+		this,
+		&AGKEnemyCharacter::OnDownRecoveryExpired,
+		Duration,
+		false);
+}
+
+void AGKEnemyCharacter::OnDownRecoveryExpired()
+{
+	bIsDown = false;
+	if (LastHitReaction == EGKHitReaction::Down)
+	{
+		LastHitReaction = EGKHitReaction::None;
+	}
 }
