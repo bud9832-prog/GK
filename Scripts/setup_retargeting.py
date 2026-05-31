@@ -60,45 +60,51 @@ ik_knight = asset_tools.create_asset(
 )
 
 knight_rig = None
-if ik_knight:
-    ctrl = unreal.IKRigController.get_controller(ik_knight)
+    if ik_knight:
+        ctrl = unreal.IKRigController.get_controller(ik_knight)
 
-    if knight_mesh:
-        try:
-            ctrl.set_skeletal_mesh(knight_mesh)
-        except Exception:
+        if knight_mesh:
             try:
-                ik_knight.set_editor_property("preview_skeletal_mesh", knight_mesh)
-            except Exception as e:
-                unreal.log_warning(f"[GK Retarget]   Knight 프리뷰 메시 설정 실패: {e}")
+                ctrl.set_skeletal_mesh(knight_mesh)
+            except Exception:
+                try:
+                    ik_knight.set_editor_property("preview_skeletal_mesh", knight_mesh)
+                except Exception as e:
+                    unreal.log_warning(f"[GK Retarget]   Knight 프리뷰 메시 설정 실패: {e}")
 
-    # UE5 Mannequin 호환 본 이름 기준 체인
-    # Knight 팩이 Mannequin 호환 네이밍을 쓰는 경우 자동 매핑됨
-    KNIGHT_CHAINS = [
-        ("Root",           "root",        "root"),
-        ("Pelvis",         "pelvis",      "pelvis"),
-        ("Spine",          "spine_01",    "spine_03"),
-        ("Neck",           "neck_01",     "neck_01"),
-        ("Head",           "head",        "head"),
-        ("LeftClavicle",   "clavicle_l",  "clavicle_l"),
-        ("LeftArm",        "upperarm_l",  "hand_l"),
-        ("RightClavicle",  "clavicle_r",  "clavicle_r"),
-        ("RightArm",       "upperarm_r",  "hand_r"),
-        ("LeftLeg",        "thigh_l",     "foot_l"),
-        ("RightLeg",       "thigh_r",     "foot_r"),
-    ]
-
-    ok = 0
-    for chain_name, start, end in KNIGHT_CHAINS:
+        # Retarget Root 설정 — root 본 (UE5 Mannequin 호환)
         try:
-            ctrl.add_retarget_chain(chain_name, start, end, "")
-            ok += 1
+            ctrl.set_retarget_root("root")
+            unreal.log("[GK Retarget] ✓ IK_Knight_Base Retarget Root = root")
         except Exception as e:
-            unreal.log_warning(f"[GK Retarget]   Knight 체인 [{chain_name}] 실패: {e}")
+            unreal.log_warning(f"[GK Retarget]   Retarget Root 설정 실패: {e}")
 
-    unreal.EditorAssetLibrary.save_loaded_asset(ik_knight)
-    knight_rig = ik_knight
-    unreal.log(f"[GK Retarget] ✓ IK_Knight_Base 생성 — 체인 {ok}/{len(KNIGHT_CHAINS)}개")
+        # UE5 Mannequin 호환 본 이름 기준 체인 (SKEL_Knight_Base 실제 본 이름 확인됨)
+        KNIGHT_CHAINS = [
+            ("Root",           "root",        "root"),
+            ("Pelvis",         "pelvis",      "pelvis"),
+            ("Spine",          "spine_01",    "spine_03"),
+            ("Neck",           "neck_01",     "neck_01"),
+            ("Head",           "head",        "head"),
+            ("LeftClavicle",   "clavicle_l",  "clavicle_l"),
+            ("LeftArm",        "upperarm_l",  "hand_l"),
+            ("RightClavicle",  "clavicle_r",  "clavicle_r"),
+            ("RightArm",       "upperarm_r",  "hand_r"),
+            ("LeftLeg",        "thigh_l",     "foot_l"),
+            ("RightLeg",       "thigh_r",     "foot_r"),
+        ]
+
+        ok = 0
+        for chain_name, start, end in KNIGHT_CHAINS:
+            try:
+                ctrl.add_retarget_chain(chain_name, start, end, "")
+                ok += 1
+            except Exception as e:
+                unreal.log_warning(f"[GK Retarget]   Knight 체인 [{chain_name}] 실패: {e}")
+
+        unreal.EditorAssetLibrary.save_loaded_asset(ik_knight)
+        knight_rig = ik_knight
+        unreal.log(f"[GK Retarget] ✓ IK_Knight_Base 생성 — 체인 {ok}/{len(KNIGHT_CHAINS)}개")
     if ok < len(KNIGHT_CHAINS):
         unreal.log("[GK Retarget]   ※ 실패한 체인은 SKEL_Knight_Base 의 실제 본 이름을 확인 후")
         unreal.log("[GK Retarget]     에디터에서 IK_Knight_Base 를 열고 수동으로 추가하세요.")
@@ -136,18 +142,26 @@ else:
             except Exception as e:
                 unreal.log_warning(f"[GK Retarget]   프리뷰 메시 설정 실패 (무시): {e}")
 
-        # Mixamo 본 이름 기준 체인 등록
-        # 소스(Knight)와 체인 이름을 일치시켜야 자동 매핑됨
+        # Retarget Root 설정 — Hips (Mixamo 루트 본 확인됨)
+        try:
+            ctrl.set_retarget_root("Hips")
+            unreal.log("[GK Retarget] ✓ IK_GK_ObsidianKnight Retarget Root = Hips")
+        except Exception as e:
+            unreal.log_warning(f"[GK Retarget]   Retarget Root 설정 실패: {e}")
+
+        # Mixamo 본 이름 기준 체인 등록 (SK_GK_ObsidianKnight 실제 본 이름 확인됨)
+        # 소스(Knight)와 체인 이름 일치 → 자동 매핑
         MIXAMO_CHAINS = [
-            ("Root",       "Hips",          "Hips"),
-            ("Pelvis",     "Hips",          "Hips"),
-            ("Spine",      "Spine",         "Spine2"),
-            ("Neck",       "Neck",          "Neck"),
-            ("Head",       "Head",          "Head"),
-            ("LeftArm",    "LeftShoulder",  "LeftHand"),
-            ("RightArm",   "RightShoulder", "RightHand"),
-            ("LeftLeg",    "LeftUpLeg",     "LeftFoot"),
-            ("RightLeg",   "RightUpLeg",    "RightFoot"),
+            ("Pelvis",         "Hips",           "Hips"),
+            ("Spine",          "Spine",          "Spine2"),
+            ("Neck",           "Neck",           "Neck"),
+            ("Head",           "Head",           "Head"),
+            ("LeftClavicle",   "LeftShoulder",   "LeftShoulder"),
+            ("LeftArm",        "LeftArm",        "LeftHand"),
+            ("RightClavicle",  "RightShoulder",  "RightShoulder"),
+            ("RightArm",       "RightArm",       "RightHand"),
+            ("LeftLeg",        "LeftUpLeg",      "LeftFoot"),
+            ("RightLeg",       "RightUpLeg",     "RightFoot"),
         ]
 
         ok = 0
