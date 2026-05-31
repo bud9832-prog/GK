@@ -42,6 +42,9 @@ else:
     unreal.log_warning(f"[Fix] IK_GK_ObsidianKnight 로드 실패: {IK_OBSIDIAN_PATH}")
 
 # ── 3. RTG — 높이 오프셋 자동 계산 후 적용 ───────────────
+# Asset Registry 강제 스캔 후 로드
+ar = unreal.AssetRegistryHelpers.get_asset_registry()
+ar.scan_paths_synchronous(["/Game/Characters/Player/Mesh"], True)
 rtg = unreal.EditorAssetLibrary.load_asset(RTG_PATH)
 if rtg:
     try:
