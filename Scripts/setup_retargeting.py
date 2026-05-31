@@ -11,7 +11,8 @@ Ashen Ossuary — ObsidianKnight 리타게팅 셋업 (UE5.7 수정판)
 
 import unreal
 
-MANNEQUIN_MESH_PATH   = "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+# SK_Mannequin 은 USkeleton 에셋 — 실제 SkeletalMesh 는 SKM_Manny_Simple
+MANNEQUIN_MESH_PATH   = "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple"
 OBSIDIAN_MESH_PATH    = "/Game/Characters/Player/Mesh/SK_GK_ObsidianKnight"
 PLAYER_MESH_DIR       = "/Game/Characters/Player/Mesh"
 
@@ -81,14 +82,17 @@ if not strategy_a_ok:
             unreal.log_warning(f"[GK Retarget] ✗ {asset_name} Controller 없음")
             return None
 
-        # 프리뷰 메시 설정 (UE5.7)
-        try:
-            controller.set_skeletal_mesh(skeletal_mesh)
-        except Exception:
+        # 프리뷰 메시 설정 — SkeletalMesh 타입만 허용
+        if isinstance(skeletal_mesh, unreal.SkeletalMesh):
             try:
-                ik_rig.set_editor_property("preview_skeletal_mesh", skeletal_mesh)
-            except Exception as e2:
-                unreal.log_warning(f"[GK Retarget]   프리뷰 메시 설정 실패 (무시): {e2}")
+                controller.set_skeletal_mesh(skeletal_mesh)
+            except Exception:
+                try:
+                    ik_rig.set_editor_property("preview_skeletal_mesh", skeletal_mesh)
+                except Exception as e2:
+                    unreal.log_warning(f"[GK Retarget]   프리뷰 메시 설정 실패 (무시): {e2}")
+        else:
+            unreal.log_warning(f"[GK Retarget]   프리뷰 메시가 SkeletalMesh 가 아님 — 건너뜀")
 
         # 본 체인 등록 (UE5.7: goal_name 인수 필요)
         chains = [
