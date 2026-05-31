@@ -17,7 +17,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HP")
 	float MaxHP = 100.f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HealItem")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HealItem",
+		meta = (DeprecatedProperty, DeprecationMessage = "Use DT_AnimationMontages row PC.Heal"))
 	TObjectPtr<UAnimMontage> HealItemMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HealItem")

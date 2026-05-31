@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GKAnimMontageTypes.h"
 #include "GKEnemyCharacter.generated.h"
+
+class UAnimMontage;
 
 UENUM(BlueprintType)
 enum class EGKHitReaction : uint8
@@ -41,6 +44,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enemy|Down")
 	float DownDuration = 1.5f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim|Table")
+	TObjectPtr<UDataTable> AnimMontageTable;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim|Table")
+	EGKEnemyType EnemyType = EGKEnemyType::FirstEnemy;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Enemy|Down")
 	bool bIsDown = false;
 
@@ -65,6 +74,11 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Combat")
 	bool IsAlive() const { return CurrentHP > 0.f && LastHitReaction != EGKHitReaction::Death; }
 
+	UFUNCTION(BlueprintCallable, Category = "Anim|Table")
+	UAnimMontage* GetMontageForAction(EGKAnimAction Action, int32 Variant = 0) const;
+
+	const FGKAnimMontageRow* GetRowForAction(EGKAnimAction Action, int32 Variant = 0) const;
+
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -72,8 +86,10 @@ protected:
 	bool bAttackHitWindowActive = false;
 
 	FTimerHandle DownRecoveryTimerHandle;
+	TObjectPtr<UDataTable> RuntimeAnimMontageTable;
 
 	void EnterDownState(float Duration, AActor* InstigatorActor);
+	UDataTable* GetAnimMontageTable();
 
 	UFUNCTION()
 	void OnDownRecoveryExpired();

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "GKAnimMontageTypes.h"
 #include "GKCombatConfig.h"
 #include "GKPlayerStatsConfig.h"
 #include "GKCharacter.generated.h"
@@ -14,6 +15,7 @@ class UCameraComponent;
 class UAkComponent;
 class UInputMappingContext;
 class UInputAction;
+class UAnimMontage;
 class AGKEnemyCharacter;
 
 UENUM(BlueprintType)
@@ -111,9 +113,15 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Combat")
 	AGKEnemyCharacter* GetLockOnTarget() const { return LockOnTarget.Get(); }
 
+	UFUNCTION(BlueprintCallable, Category = "Anim|Table")
+	UAnimMontage* GetMontageForAction(EGKAnimAction Action, int32 Variant = 0) const;
+
+	const FGKAnimMontageRow* GetRowForAction(EGKAnimAction Action, int32 Variant = 0) const;
+
 protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
@@ -136,6 +144,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Config")
 	TObjectPtr<UGKPlayerStatsConfig> PlayerStatsConfig;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim|Table")
+	TObjectPtr<UDataTable> AnimMontageTable;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character|Capsule")
 	float CapsuleRadius = 42.f;
@@ -247,11 +258,14 @@ private:
 	FTimerHandle ParryRecoveryTimerHandle;
 
 	TObjectPtr<UDataTable> RuntimeComboTable;
+	TObjectPtr<UDataTable> RuntimeAnimMontageTable;
 
 	const UGKCombatConfig* GetCombatConfig() const;
 	const UGKPlayerStatsConfig* GetPlayerStatsConfig() const;
 	const FGKComboAttackRow* GetComboRow(int32 ComboIndex) const;
 	UDataTable* GetComboTable();
+	UDataTable* GetAnimMontageTable();
+	void PreloadCriticalMontages();
 
 	void EnsureRuntimeConfigs();
 	void ApplyCharacterTuning();
@@ -351,6 +365,9 @@ private:
 	void FaceLockOnTargetIfNeeded();
 	FVector GetEvadeDirection() const;
 	void ClearMotionTimers();
+	bool TryPlayActionMontage(EGKAnimAction Action, int32 Variant = 0);
+	UAnimMontage* GetDeprecatedMontageFallback(
+		EGKAnimAction Action, int32 Variant, FString& OutDeprecatedSlotName) const;
 
 	void BroadcastWeaponSwing(int32 ComboIndex);
 	void BroadcastEvadeStart();

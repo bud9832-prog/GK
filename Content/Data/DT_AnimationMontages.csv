@@ -1,0 +1,23 @@
+---,OwnerType,EnemyType,ActionTag,ActionVariant,Montage,PlayRate,BlendInTime,BlendOutTime,Notes
+PC.Idle,PC,None,Idle,0,,1.000000,0.100000,0.150000,Pillars idle
+PC.Walk,PC,None,Walk,0,,1.000000,0.100000,0.150000,Stage 1 reserved
+PC.Run,PC,None,Run,0,,1.000000,0.100000,0.150000,Default locomotion
+PC.Sprint,PC,None,Sprint,0,,1.000000,0.100000,0.150000,Sprint locomotion
+PC.Jump,PC,None,Jump,0,,1.000000,0.100000,0.150000,Jump set placeholder
+PC.JumpAttack,PC,None,JumpAttack,0,,1.000000,0.100000,0.150000,Jump attack
+PC.Attack_Combo.0,PC,None,Attack_Combo,0,"/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Dash.MM_Dash",1.000000,0.100000,0.150000,Combo 1 placeholder
+PC.Attack_Combo.1,PC,None,Attack_Combo,1,"/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Jump.MM_Jump",1.000000,0.100000,0.150000,Combo 2 placeholder
+PC.Attack_Combo.2,PC,None,Attack_Combo,2,"/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Dash.MM_Dash",1.000000,0.100000,0.150000,Combo 3 placeholder
+PC.Evade,PC,None,Evade,0,"/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Dash.MM_Dash",1.000000,0.100000,0.150000,Evade motion placeholder
+PC.Heal,PC,None,Heal,0,"/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle.MM_Idle",1.000000,0.100000,0.150000,Heal item drink placeholder
+PC.HitStun,PC,None,HitStun,0,,1.000000,0.100000,0.150000,Hit reaction
+PC.Death,PC,None,Death,0,,1.000000,0.100000,0.150000,Player death
+PC.HeavyAttack,PC,None,HeavyAttack,0,"/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Jump.MM_Jump",1.000000,0.100000,0.150000,Skill 01B heavy placeholder
+PC.Parry_Active,PC,None,Parry_Active,0,"/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle.MM_Idle",1.000000,0.100000,0.150000,Parry active placeholder
+PC.Parry_Recovery,PC,None,Parry_Recovery,0,"/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle.MM_Idle",1.000000,0.100000,0.150000,Parry recovery placeholder
+Enemy.FirstEnemy.Idle,Enemy,FirstEnemy,Idle,0,"/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle.MM_Idle",1.000000,0.100000,0.150000,Enemy idle placeholder
+Enemy.FirstEnemy.Walk,Enemy,FirstEnemy,Walk,0,,1.000000,0.100000,0.150000,Enemy walk
+Enemy.FirstEnemy.Attack,Enemy,FirstEnemy,Enemy_Attack,0,"/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Dash.MM_Dash",1.000000,0.100000,0.150000,Enemy attack placeholder
+Enemy.FirstEnemy.Sway,Enemy,FirstEnemy,Enemy_Sway,0,,1.000000,0.100000,0.150000,Enemy sway
+Enemy.FirstEnemy.Down,Enemy,FirstEnemy,Enemy_Down,0,,1.000000,0.100000,0.150000,Enemy down
+Enemy.FirstEnemy.Death,Enemy,FirstEnemy,Death,0,,1.000000,0.100000,0.150000,Enemy death

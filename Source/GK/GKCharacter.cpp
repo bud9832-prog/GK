@@ -2,6 +2,7 @@
 
 #include "GKCharacter.h"
 #include "GKEnemyCharacter.h"
+#include "GKAnimMontageTypes.h"
 #include "AkAudioDevice.h"
 #include "AkComponent.h"
 #include "Camera/CameraComponent.h"
@@ -23,6 +24,120 @@ static TAutoConsoleVariable<int32> CVarParryDebugForceSuccess(
 	TEXT("Dev only: 1 = force parry success on nearest in-range enemy during Parry_Active"),
 	ECVF_Cheat);
 #endif
+
+#if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT || WITH_EDITOR
+static TAutoConsoleVariable<int32> CVarAnimTableStrictMode(
+	TEXT("gk.AnimTableStrictMode"),
+	0,
+	TEXT("Dev/Editor: 1 = reject deprecated montage fallback; DT row must resolve"),
+	ECVF_Cheat);
+#endif
+
+namespace GKAnimTableLog
+{
+	static TMap<FName, int32> GFallbackCounts;
+
+	static bool IsStrictMode()
+	{
+#if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT || WITH_EDITOR
+		return CVarAnimTableStrictMode.GetValueOnGameThread() != 0;
+#else
+		return false;
+#endif
+	}
+
+	static FName GetActionLogKey(EGKAnimAction Action, int32 Variant)
+	{
+		return FGKAnimMontageTableHelpers::BuildPCAnimRowName(Action, Variant);
+	}
+
+	static FString GetActionDisplayName(EGKAnimAction Action, int32 Variant)
+	{
+		const FName RowName = GetActionLogKey(Action, Variant);
+		return RowName.IsNone() ? UEnum::GetValueAsString(Action) : RowName.ToString();
+	}
+
+	static void RecordFallback(EGKAnimAction Action, int32 Variant)
+	{
+		const FName Key = GetActionLogKey(Action, Variant);
+		if (!Key.IsNone())
+		{
+			GFallbackCounts.FindOrAdd(Key)++;
+		}
+	}
+
+	static int32 GetTotalFallbackCount()
+	{
+		int32 Total = 0;
+		for (const TPair<FName, int32>& Pair : GFallbackCounts)
+		{
+			Total += Pair.Value;
+		}
+		return Total;
+	}
+
+	static void LogSessionSummary()
+	{
+		const int32 Total = GetTotalFallbackCount();
+		UE_LOG(LogTemp, Warning, TEXT("[AnimTable] SessionFallbackSummary Total=%d"), Total);
+		for (const TPair<FName, int32>& Pair : GFallbackCounts)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[AnimTable] SessionFallbackSummary RowName=%s Count=%d"),
+				*Pair.Key.ToString(), Pair.Value);
+		}
+	}
+
+	static void ResetSession()
+	{
+		GFallbackCounts.Empty();
+	}
+
+	static void LogStrictReject(EGKAnimAction Action, int32 Variant, const FString& Reason)
+	{
+		const FString ActionName = GetActionDisplayName(Action, Variant);
+		const FName RowName = GetActionLogKey(Action, Variant);
+		UE_LOG(LogTemp, Warning,
+			TEXT("[AnimTable] StrictReject Action=%s RowName=%s Reason=%s"),
+			*ActionName,
+			*RowName.ToString(),
+			*Reason);
+		ensureMsgf(false,
+			TEXT("[AnimTable] StrictReject Action=%s RowName=%s Reason=%s"),
+			*ActionName,
+			*RowName.ToString(),
+			*Reason);
+	}
+
+	static void LogFallbackUsed(
+		EGKAnimAction Action,
+		int32 Variant,
+		const FString& Reason,
+		const FString& DeprecatedSlotName,
+		UAnimMontage* Montage)
+	{
+		RecordFallback(Action, Variant);
+		const FString ActionName = GetActionDisplayName(Action, Variant);
+		const FName RowName = GetActionLogKey(Action, Variant);
+		UE_LOG(LogTemp, Warning,
+			TEXT("[AnimTable] FallbackUsed Action=%s RowName=%s Reason=%s DeprecatedSlot=%s Montage=%s"),
+			*ActionName,
+			*RowName.ToString(),
+			*Reason,
+			*DeprecatedSlotName,
+			*GetNameSafe(Montage));
+	}
+
+	static void LogRowHit(EGKAnimAction Action, int32 Variant, UAnimMontage* Montage)
+	{
+		const FString ActionName = GetActionDisplayName(Action, Variant);
+		const FName RowName = GetActionLogKey(Action, Variant);
+		UE_LOG(LogTemp, Log,
+			TEXT("[AnimTable] RowHit Action=%s RowName=%s Montage=%s"),
+			*ActionName,
+			*RowName.ToString(),
+			*GetNameSafe(Montage));
+	}
+}
 
 namespace GKCharacterLog
 {
@@ -83,6 +198,183 @@ const FGKComboAttackRow* AGKCharacter::GetComboRow(int32 ComboIndex) const
 	return nullptr;
 }
 
+UDataTable* AGKCharacter::GetAnimMontageTable()
+{
+	if (AnimMontageTable)
+	{
+		return AnimMontageTable;
+	}
+
+	if (!RuntimeAnimMontageTable)
+	{
+		RuntimeAnimMontageTable = FGKAnimMontageTableHelpers::CreateDefaultAnimMontageTable(this);
+	}
+
+	return RuntimeAnimMontageTable;
+}
+
+const FGKAnimMontageRow* AGKCharacter::GetRowForAction(EGKAnimAction Action, int32 Variant) const
+{
+	const UDataTable* Table = AnimMontageTable
+		? AnimMontageTable.Get()
+		: RuntimeAnimMontageTable.Get();
+	return FGKAnimMontageTableHelpers::FindPCRow(Table, Action, Variant);
+}
+
+UAnimMontage* AGKCharacter::GetMontageForAction(EGKAnimAction Action, int32 Variant) const
+{
+	const FGKAnimMontageRow* Row = GetRowForAction(Action, Variant);
+	if (Row)
+	{
+		if (UAnimMontage* Montage = FGKAnimMontageTableHelpers::ResolveMontage(Row))
+		{
+			return Montage;
+		}
+
+		if (GKAnimTableLog::IsStrictMode())
+		{
+			const FString Reason = Row->Montage.IsNull() ? TEXT("Soft 비어있음") : TEXT("로드 실패");
+			GKAnimTableLog::LogStrictReject(Action, Variant, Reason);
+			return nullptr;
+		}
+	}
+	else if (GKAnimTableLog::IsStrictMode())
+	{
+		GKAnimTableLog::LogStrictReject(Action, Variant, TEXT("Row 없음"));
+		return nullptr;
+	}
+
+	FString DeprecatedSlotName;
+	if (UAnimMontage* Montage = GetDeprecatedMontageFallback(Action, Variant, DeprecatedSlotName))
+	{
+		const FString Reason = Row ? (Row->Montage.IsNull() ? TEXT("Soft 비어있음") : TEXT("로드 실패"))
+		                           : TEXT("Row 없음");
+		GKAnimTableLog::LogFallbackUsed(Action, Variant, Reason, DeprecatedSlotName, Montage);
+		return Montage;
+	}
+
+	return nullptr;
+}
+
+UAnimMontage* AGKCharacter::GetDeprecatedMontageFallback(
+	EGKAnimAction Action, int32 Variant, FString& OutDeprecatedSlotName) const
+{
+	OutDeprecatedSlotName.Reset();
+
+	const UGKCombatConfig* Config = GetCombatConfig();
+	const UGKPlayerStatsConfig* Stats = GetPlayerStatsConfig();
+
+	switch (Action)
+	{
+	case EGKAnimAction::Attack_Combo:
+		OutDeprecatedSlotName = FString::Printf(TEXT("FGKComboAttackRow.Montage(Combo_%02d)"), Variant + 1);
+		if (const FGKComboAttackRow* Row = GetComboRow(Variant))
+		{
+			return Row->Montage;
+		}
+		break;
+	case EGKAnimAction::Evade:
+		OutDeprecatedSlotName = TEXT("UGKCombatConfig.EvadeMontage");
+		return Config ? Config->EvadeMontage : nullptr;
+	case EGKAnimAction::Heal:
+		OutDeprecatedSlotName = TEXT("UGKPlayerStatsConfig.HealItemMontage");
+		return Stats ? Stats->HealItemMontage : nullptr;
+	case EGKAnimAction::HeavyAttack:
+		OutDeprecatedSlotName = TEXT("UGKCombatConfig.HeavyAttackMontage");
+		return Config ? Config->HeavyAttackMontage : nullptr;
+	case EGKAnimAction::Parry_Active:
+		OutDeprecatedSlotName = TEXT("UGKCombatConfig.ParryMontage");
+		return Config ? Config->ParryMontage : nullptr;
+	case EGKAnimAction::Parry_Recovery:
+		OutDeprecatedSlotName = TEXT("UGKCombatConfig.ParryMontage");
+		return Config ? Config->ParryMontage : nullptr;
+	default:
+		OutDeprecatedSlotName = TEXT("None");
+		break;
+	}
+
+	return nullptr;
+}
+
+bool AGKCharacter::TryPlayActionMontage(EGKAnimAction Action, int32 Variant)
+{
+	const FGKAnimMontageRow* Row = GetRowForAction(Action, Variant);
+	float PlayRate = Row ? Row->PlayRate : 1.f;
+
+	if (Row)
+	{
+		if (UAnimMontage* Montage = FGKAnimMontageTableHelpers::ResolveMontage(Row))
+		{
+			GKAnimTableLog::LogRowHit(Action, Variant, Montage);
+			PlayAnimMontage(Montage, PlayRate);
+			return true;
+		}
+
+		if (GKAnimTableLog::IsStrictMode())
+		{
+			const FString Reason = Row->Montage.IsNull() ? TEXT("Soft 비어있음") : TEXT("로드 실패");
+			GKAnimTableLog::LogStrictReject(Action, Variant, Reason);
+			return false;
+		}
+	}
+	else if (GKAnimTableLog::IsStrictMode())
+	{
+		GKAnimTableLog::LogStrictReject(Action, Variant, TEXT("Row 없음"));
+		return false;
+	}
+
+	FString DeprecatedSlotName;
+	UAnimMontage* Montage = GetDeprecatedMontageFallback(Action, Variant, DeprecatedSlotName);
+	if (!Montage)
+	{
+		return false;
+	}
+
+	const FString Reason = Row ? (Row->Montage.IsNull() ? TEXT("Soft 비어있음") : TEXT("로드 실패"))
+	                           : TEXT("Row 없음");
+	GKAnimTableLog::LogFallbackUsed(Action, Variant, Reason, DeprecatedSlotName, Montage);
+	PlayAnimMontage(Montage, PlayRate);
+	return true;
+}
+
+void AGKCharacter::PreloadCriticalMontages()
+{
+	auto PreloadOne = [this](EGKAnimAction Action, int32 Variant)
+	{
+		const FName RowName = FGKAnimMontageTableHelpers::BuildPCAnimRowName(Action, Variant);
+		if (const FGKAnimMontageRow* Row = GetRowForAction(Action, Variant))
+		{
+			if (UAnimMontage* Montage = FGKAnimMontageTableHelpers::ResolveMontage(Row))
+			{
+				UE_LOG(LogTemp, Log, TEXT("[AnimTable] Preload RowName=%s Montage=%s"),
+					*RowName.ToString(), *GetNameSafe(Montage));
+			}
+		}
+	};
+
+	PreloadOne(EGKAnimAction::Evade, 0);
+	PreloadOne(EGKAnimAction::Heal, 0);
+	PreloadOne(EGKAnimAction::HeavyAttack, 0);
+	PreloadOne(EGKAnimAction::Parry_Active, 0);
+	PreloadOne(EGKAnimAction::Parry_Recovery, 0);
+
+	for (int32 ComboIndex = 0; ComboIndex < 3; ++ComboIndex)
+	{
+		PreloadOne(EGKAnimAction::Attack_Combo, ComboIndex);
+	}
+}
+
+void AGKCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (IsLocallyControlled())
+	{
+		GKAnimTableLog::LogSessionSummary();
+		GKAnimTableLog::ResetSession();
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
 AGKCharacter::AGKCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -121,6 +413,11 @@ void AGKCharacter::EnsureRuntimeConfigs()
 	{
 		GetComboTable();
 	}
+
+	if (!AnimMontageTable)
+	{
+		GetAnimMontageTable();
+	}
 }
 
 void AGKCharacter::OnConstruction(const FTransform& Transform)
@@ -142,6 +439,8 @@ void AGKCharacter::BeginPlay()
 	CurrentStamina = Config->MaxStamina;
 	HealItemRemaining = Stats->HealItem_StartCount;
 	CombatState = EGKCombatState::Idle;
+
+	PreloadCriticalMontages();
 
 	ApplyCharacterTuning();
 
@@ -908,11 +1207,7 @@ void AGKCharacter::BeginComboAttack(int32 ComboIndex)
 	SetCombatState(EGKCombatState::Attack);
 	FaceLockOnTargetIfNeeded();
 	BroadcastWeaponSwing(ComboIndex);
-
-	if (Row->Montage)
-	{
-		PlayAnimMontage(Row->Montage);
-	}
+	TryPlayActionMontage(EGKAnimAction::Attack_Combo, ComboIndex);
 
 	GetWorldTimerManager().SetTimer(
 		HitWindowStartTimerHandle,
@@ -1108,11 +1403,7 @@ void AGKCharacter::BeginHeavyAttack()
 	SetCombatState(EGKCombatState::HeavyAttack);
 	FaceLockOnTargetIfNeeded();
 	BroadcastWeaponSwing(HeavyAttackAudioComboIndex);
-
-	if (Config->HeavyAttackMontage)
-	{
-		PlayAnimMontage(Config->HeavyAttackMontage);
-	}
+	TryPlayActionMontage(EGKAnimAction::HeavyAttack);
 
 	GetWorldTimerManager().SetTimer(
 		HitWindowStartTimerHandle,
@@ -1188,11 +1479,7 @@ void AGKCharacter::BeginParry()
 	SetCombatState(EGKCombatState::Parry_Active);
 	FaceLockOnTargetIfNeeded();
 	BroadcastParryAttempt();
-
-	if (Config->ParryMontage)
-	{
-		PlayAnimMontage(Config->ParryMontage);
-	}
+	TryPlayActionMontage(EGKAnimAction::Parry_Active);
 
 	GetWorldTimerManager().SetTimer(
 		ParryActiveTimerHandle,
@@ -1214,6 +1501,7 @@ void AGKCharacter::CompleteParrySuccess(AGKEnemyCharacter* Enemy)
 	GetWorldTimerManager().ClearTimer(ParryActiveTimerHandle);
 	Enemy->ApplyParrySuccess(Config->Parry_RipostWindow, this);
 	BroadcastParrySuccess();
+	// 의도 동작(SKILL_01B A-6/S11): 패링 성공 시 Parry_Recovery 없이 즉시 Idle/Run 복귀. Recovery는 실패 경로 전용.
 	SetCombatState(MoveInput.IsNearlyZero() ? EGKCombatState::Idle : EGKCombatState::Run);
 }
 
@@ -1290,6 +1578,7 @@ void AGKCharacter::EnterParryRecoveryPhase()
 
 	const UGKCombatConfig* Config = GetCombatConfig();
 	SetCombatState(EGKCombatState::Parry_Recovery);
+	TryPlayActionMontage(EGKAnimAction::Parry_Recovery);
 
 	GetWorldTimerManager().SetTimer(
 		ParryRecoveryTimerHandle,
@@ -1326,11 +1615,7 @@ void AGKCharacter::BeginEvadeMotion()
 	bIsInvulnerable = true;
 	SetCombatState(EGKCombatState::Evade_Active);
 	BroadcastEvadeStart();
-
-	if (Config->EvadeMontage)
-	{
-		PlayAnimMontage(Config->EvadeMontage);
-	}
+	TryPlayActionMontage(EGKAnimAction::Evade);
 
 	const FVector EvadeDirection = GetEvadeDirection();
 	const float EvadeDistance = Config->RunSpeed * Config->Evade_IFrameDuration;
@@ -1415,11 +1700,7 @@ void AGKCharacter::BeginHealMotion()
 
 	SetCombatState(EGKCombatState::Heal);
 	BroadcastHealItemStart();
-
-	if (Stats->HealItemMontage)
-	{
-		PlayAnimMontage(Stats->HealItemMontage);
-	}
+	TryPlayActionMontage(EGKAnimAction::Heal);
 
 	GetWorldTimerManager().SetTimer(
 		HealDrinkTimerHandle,

@@ -1,6 +1,7 @@
 // Copyright Ashen Ossuary. All Rights Reserved.
 
 #include "GKEnemyCharacter.h"
+#include "Engine/DataTable.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -25,6 +26,39 @@ AGKEnemyCharacter::AGKEnemyCharacter()
 			PlaceholderMesh->SetStaticMesh(CubeMesh.Object);
 		}
 	}
+}
+
+UDataTable* AGKEnemyCharacter::GetAnimMontageTable()
+{
+	if (AnimMontageTable)
+	{
+		return AnimMontageTable;
+	}
+
+	if (!RuntimeAnimMontageTable)
+	{
+		RuntimeAnimMontageTable = FGKAnimMontageTableHelpers::CreateDefaultAnimMontageTable(this);
+	}
+
+	return RuntimeAnimMontageTable;
+}
+
+const FGKAnimMontageRow* AGKEnemyCharacter::GetRowForAction(EGKAnimAction Action, int32 Variant) const
+{
+	const UDataTable* Table = AnimMontageTable
+		? AnimMontageTable.Get()
+		: RuntimeAnimMontageTable.Get();
+	return FGKAnimMontageTableHelpers::FindEnemyRow(Table, EnemyType, Action, Variant);
+}
+
+UAnimMontage* AGKEnemyCharacter::GetMontageForAction(EGKAnimAction Action, int32 Variant) const
+{
+	if (const FGKAnimMontageRow* Row = GetRowForAction(Action, Variant))
+	{
+		return FGKAnimMontageTableHelpers::ResolveMontage(Row);
+	}
+
+	return nullptr;
 }
 
 void AGKEnemyCharacter::BeginPlay()

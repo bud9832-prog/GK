@@ -38,7 +38,8 @@ struct FGKComboAttackRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo")
 	float ComboInputWindowEnd = 0.70f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo",
+		meta = (DeprecatedProperty, DeprecationMessage = "Use DT_AnimationMontages rows PC.Attack_Combo.0/1/2"))
 	TObjectPtr<UAnimMontage> Montage = nullptr;
 };
 
@@ -82,7 +83,8 @@ public:
 	float Jump_AirControl = 0.2f;
 
 	// Jump Attack
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "JumpAttack")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "JumpAttack",
+		meta = (DeprecatedProperty, DeprecationMessage = "Use DT_AnimationMontages row PC.JumpAttack"))
 	TObjectPtr<UAnimMontage> JumpAttackMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "JumpAttack")
@@ -102,7 +104,8 @@ public:
 	TObjectPtr<UDataTable> ComboAttackTable = nullptr;
 
 	// Evade
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Evade")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Evade",
+		meta = (DeprecatedProperty, DeprecationMessage = "Use DT_AnimationMontages row PC.Evade"))
 	TObjectPtr<UAnimMontage> EvadeMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Evade")
@@ -119,7 +122,8 @@ public:
 	float LockOnFOVDegrees = 60.f;
 
 	// HeavyAttack (Skill1B)
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HeavyAttack")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HeavyAttack",
+		meta = (DeprecatedProperty, DeprecationMessage = "Use DT_AnimationMontages row PC.HeavyAttack"))
 	TObjectPtr<UAnimMontage> HeavyAttackMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HeavyAttack")
@@ -138,7 +142,8 @@ public:
 	float HeavyAttack_HitWindowEnd = 0.70f;
 
 	// Parry (Skill1B)
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Parry")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Parry",
+		meta = (DeprecatedProperty, DeprecationMessage = "Use DT_AnimationMontages rows PC.Parry_Active / PC.Parry_Recovery"))
 	TObjectPtr<UAnimMontage> ParryMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Parry")
