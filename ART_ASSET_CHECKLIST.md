@@ -77,6 +77,31 @@ KiHoon 갱신: Stage 1 시작부터 1·2·3타 콤보 제공. 콤보 2/3 몽타�
 
 ---
 
+## 4-B. 리타게팅 셋업 (2026-05-31 E 추가)
+
+> SK_GK_ObsidianKnight 가 Mannequin 애니메이션을 사용하기 위한 리타게팅 에셋 현황.
+> 본 이름 22개가 Mannequin 과 완전 동일하므로 전략 A (스켈레톤 직접 재할당) 또는
+> 전략 B (IK Rig + IK Retargeter) 중 하나로 해결 가능.
+> `Scripts/setup_retargeting.py` 실행 시 두 전략을 자동 시도합니다.
+
+| 분류 | 항목 | 경로 | 우선순위 | 상태 | 비고 |
+| :--- | :--- | :--- | :---: | :--- | :--- |
+| 스켈레톤 | SK_GK_ObsidianKnight_Skeleton | `/Game/Characters/Player/Mesh/` | 최우선 | 수령 완료 | import_meshy_assets.py 실행 시 자동 생성. setup_retargeting.py 로 Mannequin 스켈레톤 재할당 가능 |
+| IK Rig | IK_Mannequin | `/Game/Characters/Player/Mesh/` | 최우선 | 요청됨 | setup_retargeting.py 자동 생성 대상 |
+| IK Rig | IK_GK_ObsidianKnight | `/Game/Characters/Player/Mesh/` | 최우선 | 요청됨 | setup_retargeting.py 자동 생성 대상 |
+| IK Retargeter | RTG_Mannequin_ObsidianKnight | `/Game/Characters/Player/Mesh/` | 최우선 | 요청됨 | setup_retargeting.py 자동 생성 대상. Source=IK_Mannequin / Target=IK_GK_ObsidianKnight |
+| 애니메이션 | MM_Idle (재사용) | `/Game/Characters/Mannequins/Anims/Unarmed/` | 최우선 | 수령 완료 | 리타게팅 완료 후 BP_GKCharacter AnimBP 에서 직접 참조 |
+| 애니메이션 | BS_Idle_Walk_Run (재사용) | `/Game/Characters/Mannequins/Anims/Unarmed/` | 최우선 | 수령 완료 | 동일 |
+
+**실행 순서:**
+1. UE Editor 열기
+2. `Tools > Execute Python Script > Scripts/setup_retargeting.py`
+3. Output Log 에서 전략 A/B 결과 확인
+4. 전략 A 성공 시: BP_GKCharacter 에서 SK_GK_ObsidianKnight + Mannequin 애니 직접 사용
+5. 전략 B만 성공 시: RTG_Mannequin_ObsidianKnight 에서 `Retarget Animation Assets` 사용
+
+---
+
 ## 5. 경로·네이밍 확정 체크
 
 | 항목 | 확정값 | 상태 | 비고 |

@@ -1304,10 +1304,7 @@ void AGKCharacter::BeginJumpAttack()
 	FaceLockOnTargetIfNeeded();
 	BroadcastWeaponSwing(JumpAttackAudioComboIndex);
 
-	if (Config->JumpAttackMontage)
-	{
-		PlayAnimMontage(Config->JumpAttackMontage);
-	}
+	TryPlayActionMontage(EGKAnimAction::JumpAttack);
 
 	GetWorldTimerManager().SetTimer(
 		HitWindowStartTimerHandle,
