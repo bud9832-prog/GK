@@ -1,189 +1,144 @@
 """
-Ashen Ossuary — ObsidianKnight 리타게팅 셋업 (UE5.7 수정판)
+Ashen Ossuary — ObsidianKnight 리타게팅 셋업 (KnightAnimation 팩 기준)
 에이전트 E 작성
 
-실행: UE Editor > Tools > Execute Python Script > 이 파일 선택
+소스: Rig_Knight_Base (이미 존재, KnightAnimation 팩 전용 IK Rig)
+타겟: IK_GK_ObsidianKnight (Mixamo 본 이름으로 신규 생성)
 
-전략 A: SK_Mannequin 의 Skeleton 을 SK_GK_ObsidianKnight 에 직접 재할당
-         → 본 이름이 동일하므로 성공 시 Mannequin 애니 즉시 사용 가능
-전략 B: 전략 A 실패 시 IK Rig + IK Retargeter 수동 생성 안내
+완료 시:
+  - 콤보 1~5타, 패링, 가드, 달리기, 점프, 사망 등
+    Anim_Knight_* 전체를 ObsidianKnight 에 리타게팅 가능
+
+실행 순서:
+  1. scripts/import_meshy_assets.py  (SK_GK_ObsidianKnight Mixamo 임포트)
+  2. 이 파일
+  3. Content Browser 수동 1단계:
+     Characters > Player > Mesh 우클릭
+     → Animation → IK Retargeter
+     → Source: Rig_Knight_Base / 저장: RTG_Knight_ObsidianKnight
+     → Target IK Rig: IK_GK_ObsidianKnight
+     → 에셋 리타깃 → Anim_Knight_* 전체 선택 → Export
 """
 
 import unreal
 
-# SK_Mannequin 은 USkeleton 에셋 — 실제 SkeletalMesh 는 SKM_Manny_Simple
-MANNEQUIN_MESH_PATH   = "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple"
-OBSIDIAN_MESH_PATH    = "/Game/Characters/Player/Mesh/SK_GK_ObsidianKnight"
-PLAYER_MESH_DIR       = "/Game/Characters/Player/Mesh"
+KNIGHT_RIG_PATH    = "/Game/KnightAnimation/Demo/DemoCharacters/Rig_Knight_Base"
+KNIGHT_SKEL_PATH   = "/Game/KnightAnimation/Demo/DemoCharacters/SKEL_Knight_Base"
+OBSIDIAN_MESH_PATH = "/Game/Characters/Player/Mesh/SK_GK_ObsidianKnight"
+PLAYER_MESH_DIR    = "/Game/Characters/Player/Mesh"
 
 unreal.log("=" * 60)
-unreal.log("  Ashen Ossuary — ObsidianKnight 리타게팅 셋업 시작")
+unreal.log("  ObsidianKnight 리타게팅 셋업 (KnightAnimation 기준)")
 unreal.log("=" * 60)
 
-
-# ── 전략 A: 스켈레톤 직접 재할당 ──────────────────────────────────────
-unreal.log("[GK Retarget] ── 전략 A: 스켈레톤 직접 재할당 시도 ──")
-
-strategy_a_ok = False
-
-mannequin_mesh = unreal.EditorAssetLibrary.load_asset(MANNEQUIN_MESH_PATH)
-obsidian_mesh  = unreal.EditorAssetLibrary.load_asset(OBSIDIAN_MESH_PATH)
-
-if not mannequin_mesh:
-    unreal.log_warning(f"[GK Retarget] ✗ Mannequin 메시 없음: {MANNEQUIN_MESH_PATH}")
-elif not isinstance(mannequin_mesh, unreal.SkeletalMesh):
-    unreal.log_warning(f"[GK Retarget] ✗ {MANNEQUIN_MESH_PATH} 이 SkeletalMesh 가 아님")
-elif not obsidian_mesh:
-    unreal.log_warning(f"[GK Retarget] ✗ ObsidianKnight 메시 없음: {OBSIDIAN_MESH_PATH}")
-    unreal.log_warning("[GK Retarget]   import_meshy_assets.py 를 먼저 실행하세요.")
-elif not isinstance(obsidian_mesh, unreal.SkeletalMesh):
-    unreal.log_warning(f"[GK Retarget] ✗ {OBSIDIAN_MESH_PATH} 이 SkeletalMesh 가 아님")
+# ── 소스 IK Rig 확인 ─────────────────────────────────────────────────
+knight_rig = unreal.EditorAssetLibrary.load_asset(KNIGHT_RIG_PATH)
+if knight_rig:
+    unreal.log(f"[GK Retarget] ✓ 소스 IK Rig 확인: Rig_Knight_Base")
 else:
-    mannequin_skeleton = mannequin_mesh.skeleton
-    if not mannequin_skeleton:
-        unreal.log_warning("[GK Retarget] ✗ Mannequin 에서 Skeleton 추출 실패")
-    else:
-        unreal.log(f"[GK Retarget]   Mannequin Skeleton: {mannequin_skeleton.get_path_name()}")
+    unreal.log_warning(f"[GK Retarget] ✗ Rig_Knight_Base 없음: {KNIGHT_RIG_PATH}")
+    unreal.log_warning("[GK Retarget]   KnightAnimation 팩이 임포트되어 있는지 확인하세요.")
+
+# ── 타겟 IK Rig 생성 (Mixamo ObsidianKnight) ─────────────────────────
+unreal.log("[GK Retarget] IK_GK_ObsidianKnight 생성 중 (Mixamo 본)...")
+
+IK_TARGET_PATH = f"{PLAYER_MESH_DIR}/IK_GK_ObsidianKnight"
+if unreal.EditorAssetLibrary.does_asset_exist(IK_TARGET_PATH):
+    unreal.EditorAssetLibrary.delete_asset(IK_TARGET_PATH)
+
+obsidian_mesh = unreal.EditorAssetLibrary.load_asset(OBSIDIAN_MESH_PATH)
+if not obsidian_mesh or not isinstance(obsidian_mesh, unreal.SkeletalMesh):
+    unreal.log_warning(f"[GK Retarget] ✗ SK_GK_ObsidianKnight SkeletalMesh 없음")
+    unreal.log_warning("[GK Retarget]   scripts/import_meshy_assets.py 를 먼저 실행하세요.")
+else:
+    asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
+    ik_target = asset_tools.create_asset(
+        "IK_GK_ObsidianKnight", PLAYER_MESH_DIR,
+        unreal.IKRigDefinition,
+        unreal.IKRigDefinitionFactory()
+    )
+
+    if ik_target:
+        ctrl = unreal.IKRigController.get_controller(ik_target)
+
+        # 프리뷰 메시 설정
         try:
-            # 스켈레톤 재할당
-            unreal.EditorAssetLibrary.checkout_loaded_asset(obsidian_mesh)
-            obsidian_mesh.set_editor_property("skeleton", mannequin_skeleton)
-            unreal.EditorAssetLibrary.save_loaded_asset(obsidian_mesh)
-            strategy_a_ok = True
-            unreal.log("[GK Retarget] ✓ 전략 A 성공 — ObsidianKnight 가 Mannequin 애니를 직접 사용합니다.")
-            unreal.log("[GK Retarget]   Content > Characters > Player > Mesh > SK_GK_ObsidianKnight")
-            unreal.log("[GK Retarget]   를 열어 미리보기에서 Mannequin 애니 재생 가능 여부 확인하세요.")
-        except Exception as e:
-            unreal.log_warning(f"[GK Retarget] ✗ 전략 A 실패: {e}")
-
-
-# ── 전략 B: IK Rig 생성 (전략 A 실패 시) ────────────────────────────
-if not strategy_a_ok:
-    unreal.log("[GK Retarget] ── 전략 B: IK Rig 생성 (UE5.7 API) ──")
-
-    def create_ik_rig(asset_name, skeletal_mesh):
-        full_path = f"{PLAYER_MESH_DIR}/{asset_name}"
-        if unreal.EditorAssetLibrary.does_asset_exist(full_path):
-            unreal.EditorAssetLibrary.delete_asset(full_path)
-
-        # IKRigDefinition 에셋 직접 생성
-        asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
-        ik_rig = asset_tools.create_asset(
-            asset_name, PLAYER_MESH_DIR,
-            unreal.IKRigDefinition,
-            unreal.IKRigDefinitionFactory()
-        )
-        if not ik_rig:
-            unreal.log_warning(f"[GK Retarget] ✗ {asset_name} 생성 실패")
-            return None
-
-        controller = unreal.IKRigController.get_controller(ik_rig)
-        if not controller:
-            unreal.log_warning(f"[GK Retarget] ✗ {asset_name} Controller 없음")
-            return None
-
-        # 프리뷰 메시 설정 — SkeletalMesh 타입만 허용
-        if isinstance(skeletal_mesh, unreal.SkeletalMesh):
+            ctrl.set_skeletal_mesh(obsidian_mesh)
+        except Exception:
             try:
-                controller.set_skeletal_mesh(skeletal_mesh)
-            except Exception:
-                try:
-                    ik_rig.set_editor_property("preview_skeletal_mesh", skeletal_mesh)
-                except Exception as e2:
-                    unreal.log_warning(f"[GK Retarget]   프리뷰 메시 설정 실패 (무시): {e2}")
-        else:
-            unreal.log_warning(f"[GK Retarget]   프리뷰 메시가 SkeletalMesh 가 아님 — 건너뜀")
+                ik_target.set_editor_property("preview_skeletal_mesh", obsidian_mesh)
+            except Exception as e:
+                unreal.log_warning(f"[GK Retarget]   프리뷰 메시 설정 실패 (무시): {e}")
 
-        # 본 체인 등록 (UE5.7: goal_name 인수 필요)
-        chains = [
-            ("Root",     "root",       "root"),
-            ("Pelvis",   "pelvis",     "pelvis"),
-            ("Spine",    "spine_01",   "spine_03"),
-            ("Head",     "neck_01",    "head"),
-            ("LeftArm",  "clavicle_l", "hand_l"),
-            ("RightArm", "clavicle_r", "hand_r"),
-            ("LeftLeg",  "thigh_l",    "ball_l"),
-            ("RightLeg", "thigh_r",    "ball_r"),
+        # Mixamo 본 이름 기준 체인 등록
+        # 소스(Knight)와 체인 이름을 일치시켜야 자동 매핑됨
+        MIXAMO_CHAINS = [
+            ("Root",       "Hips",          "Hips"),
+            ("Pelvis",     "Hips",          "Hips"),
+            ("Spine",      "Spine",         "Spine2"),
+            ("Neck",       "Neck",          "Neck"),
+            ("Head",       "Head",          "Head"),
+            ("LeftArm",    "LeftShoulder",  "LeftHand"),
+            ("RightArm",   "RightShoulder", "RightHand"),
+            ("LeftLeg",    "LeftUpLeg",     "LeftFoot"),
+            ("RightLeg",   "RightUpLeg",    "RightFoot"),
         ]
-        registered = 0
-        for chain_name, start, end in chains:
+
+        ok = 0
+        for chain_name, start, end in MIXAMO_CHAINS:
             try:
-                controller.add_retarget_chain(chain_name, start, end, "")
-                registered += 1
+                ctrl.add_retarget_chain(chain_name, start, end, "")
+                ok += 1
             except Exception as e:
                 unreal.log_warning(f"[GK Retarget]   체인 [{chain_name}] 실패: {e}")
 
-        unreal.EditorAssetLibrary.save_loaded_asset(ik_rig)
-        unreal.log(f"[GK Retarget] ✓ {asset_name} — 체인 {registered}/{len(chains)}개 등록")
-        return ik_rig
+        unreal.EditorAssetLibrary.save_loaded_asset(ik_target)
+        unreal.log(f"[GK Retarget] ✓ IK_GK_ObsidianKnight — 체인 {ok}/{len(MIXAMO_CHAINS)}개 등록")
 
-    manny_mesh_obj    = unreal.EditorAssetLibrary.load_asset(MANNEQUIN_MESH_PATH)
-    obsidian_mesh_obj = unreal.EditorAssetLibrary.load_asset(OBSIDIAN_MESH_PATH)
-
-    ik_mannequin = None
-    ik_obsidian  = None
-
-    if manny_mesh_obj:
-        ik_mannequin = create_ik_rig("IK_Mannequin", manny_mesh_obj)
-    if obsidian_mesh_obj:
-        ik_obsidian  = create_ik_rig("IK_GK_ObsidianKnight", obsidian_mesh_obj)
-
-    # IK Retargeter 생성
+    # ── IK Retargeter 자동 생성 시도 ─────────────────────────────────
     rtg_ok = False
-    if ik_mannequin and ik_obsidian:
-        unreal.log("[GK Retarget] ── IK Retargeter 생성 ──")
-        rtg_path = f"{PLAYER_MESH_DIR}/RTG_Mannequin_ObsidianKnight"
+    if ik_target and knight_rig:
+        RTG_PATH = f"{PLAYER_MESH_DIR}/RTG_Knight_ObsidianKnight"
         try:
-            if unreal.EditorAssetLibrary.does_asset_exist(rtg_path):
-                unreal.EditorAssetLibrary.delete_asset(rtg_path)
-
-            asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
-            # UE5.7 팩토리 이름 탐색
+            if unreal.EditorAssetLibrary.does_asset_exist(RTG_PATH):
+                unreal.EditorAssetLibrary.delete_asset(RTG_PATH)
             factory = None
-            for cls_name in ["IKRetargeterFactory", "IKRigRetargeterFactory"]:
+            for fname in ["IKRetargeterFactory", "IKRigRetargeterFactory"]:
                 try:
-                    factory_cls = getattr(unreal, cls_name)
-                    factory = factory_cls()
+                    factory = getattr(unreal, fname)()
                     break
                 except AttributeError:
-                    continue
-
+                    pass
             if factory:
                 rtg = asset_tools.create_asset(
-                    "RTG_Mannequin_ObsidianKnight", PLAYER_MESH_DIR,
+                    "RTG_Knight_ObsidianKnight", PLAYER_MESH_DIR,
                     unreal.IKRetargeter, factory
                 )
                 if rtg:
-                    controller = unreal.IKRetargeterController.get_controller(rtg)
-                    if controller:
-                        controller.set_ik_rig(unreal.RetargetSourceOrTarget.SOURCE, ik_mannequin)
-                        controller.set_ik_rig(unreal.RetargetSourceOrTarget.TARGET, ik_obsidian)
+                    rc = unreal.IKRetargeterController.get_controller(rtg)
+                    if rc:
+                        rc.set_ik_rig(unreal.RetargetSourceOrTarget.SOURCE, knight_rig)
+                        rc.set_ik_rig(unreal.RetargetSourceOrTarget.TARGET, ik_target)
                     unreal.EditorAssetLibrary.save_loaded_asset(rtg)
                     rtg_ok = True
-                    unreal.log(f"[GK Retarget] ✓ RTG_Mannequin_ObsidianKnight 생성 완료")
-            else:
-                unreal.log_warning("[GK Retarget] ✗ IKRetargeterFactory 없음 — 수동 생성 필요")
+                    unreal.log("[GK Retarget] ✓ RTG_Knight_ObsidianKnight 자동 생성!")
         except Exception as e:
-            unreal.log_warning(f"[GK Retarget] ✗ Retargeter 생성 실패: {e}")
+            unreal.log_warning(f"[GK Retarget] Retargeter 자동 생성 실패: {e}")
 
-    # 전략 B 실패 시 수동 안내
     if not rtg_ok:
         unreal.log("")
-        unreal.log("[GK Retarget] ★ 수동 작업 안내 (2분 소요) ★")
-        unreal.log("  1. Content Browser > Characters > Player > Mesh")
-        unreal.log("  2. 우클릭 > Animation > IK Retargeter")
-        unreal.log("  3. Source IK Rig: IK_Mannequin 선택")
-        unreal.log("  4. Target IK Rig: IK_GK_ObsidianKnight 선택")
-        unreal.log("  5. 저장 후 'Retarget Animation Assets' 버튼 클릭")
-        unreal.log("  6. 원하는 Mannequin 애니 선택 → Export")
+        unreal.log("[GK Retarget] ★ 수동 1단계 (2분) ★")
+        unreal.log("  Content Browser > Characters > Player > Mesh")
+        unreal.log("  우클릭 → Animation → IK Retargeter")
+        unreal.log("  → Source IK Rig: Rig_Knight_Base")
+        unreal.log("  → 저장 이름: RTG_Knight_ObsidianKnight")
+        unreal.log("  열리면 Target 패널에서 IK_GK_ObsidianKnight 선택")
+        unreal.log("  → 상단 '에셋 리타깃' → Anim_Knight_* 전체 선택 → Export")
+        unreal.log("    저장 위치: /Game/Characters/Player/Animations/")
 
-
-# ── 결과 요약 ──────────────────────────────────────────────────────────
 unreal.log("=" * 60)
-unreal.log("  결과 요약")
-unreal.log("=" * 60)
-unreal.log(f"  전략 A (스켈레톤 직접 재할당): {'✓ 성공' if strategy_a_ok else '✗ 실패'}")
-if not strategy_a_ok:
-    unreal.log(f"  IK_Mannequin              : {'✓' if 'ik_mannequin' in dir() and ik_mannequin else '✗'}")
-    unreal.log(f"  IK_GK_ObsidianKnight      : {'✓' if 'ik_obsidian' in dir() and ik_obsidian else '✗'}")
+unreal.log("  리타게팅 완료 후 사용 가능한 애니메이션:")
+unreal.log("  BasicAttack_01~05 / Parrying / Guard / Die")
+unreal.log("  Idle / Walk / Run / Sprint / Jump / Fall")
+unreal.log("  Hit_Stand_* / Groggy / Skill_Slash·Smash·Stab 등")
 unreal.log("=" * 60)
