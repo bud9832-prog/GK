@@ -2,21 +2,15 @@
 Ashen Ossuary — Meshy AI Asset Import Script
 에이전트 E 작성 | 실행 방법: UE Editor > Tools > Execute Python Script > 이 파일 선택
 
-리깅 완료 후 SK_GK_ObsidianKnight.fbx 가 생성된 경우:
-  스크립트 하단 SKELETAL_ASSETS 섹션도 자동 임포트됩니다.
+임포트 대상 (확정 에셋만):
+  - SK_GK_ObsidianKnight   (플레이어 캐릭터 — Mixamo 리깅, 스켈레탈 메시)
+  - SM_GK_Dreadblade       (플레이어 검 — Emission 발광 포함)
+  - 각 에셋 PBR 텍스처 세트 (BC/N/M/R/E)
 
-임포트 대상:
-  ✅ 확정 에셋
-  - SM_GK_ObsidianKnight   (플레이어 캐릭터 — 확정)
-  - SM_GK_Dreadblade       (플레이어 검 — 확정, Emission 발광 포함)
-  - SM_GK_KnightHelmet     (헬멧)
-  - SM_GK_HeavyCloak       (망토)
-
-  📦 보관 에셋 (레퍼런스용, 임포트는 됨)
-  - SM_GK_DarkplateKnight  (구버전 캐릭터)
-  - SM_GK_KnightSword      (구버전 검)
-
-  각 에셋에 5종 PBR 텍스처 세트 (BC/N/M/R/E)
+비고:
+  - ObsidianKnight는 SM_ FBX 미존재 (SK_ 버전으로 대체됨)
+    → 텍스처는 별도 임포트, 메시는 SKELETAL_ASSETS에서 처리
+  - 구버전(DarkplateKnight, Helmet, Cloak, KnightSword) art 폴더에서 삭제됨
 """
 
 import unreal
@@ -28,62 +22,11 @@ import os
 ART_ROOT = r"C:\UE\GK\art"
 
 ASSETS = [
-    {
-        "name":        "DarkplateKnight",
-        "fbx":         r"Character\SM_GK_DarkplateKnight.fbx",
-        "ue_mesh_path": "/Game/Characters/Player/Mesh",
-        "ue_tex_path":  "/Game/Characters/Player/Textures",
-        "textures": {
-            "BC": r"Character\T_GK_DarkplateKnight_BC.png",
-            "N":  r"Character\T_GK_DarkplateKnight_N.png",
-            "M":  r"Character\T_GK_DarkplateKnight_M.png",
-            "R":  r"Character\T_GK_DarkplateKnight_R.png",
-            "E":  r"Character\T_GK_DarkplateKnight_E.png",
-        },
-    },
-    {
-        "name":        "KnightHelmet",
-        "fbx":         r"Helmet\SM_GK_KnightHelmet.fbx",
-        "ue_mesh_path": "/Game/Characters/Player/Mesh",
-        "ue_tex_path":  "/Game/Characters/Player/Textures",
-        "textures": {
-            "BC": r"Helmet\T_GK_KnightHelmet_BC.png",
-            "N":  r"Helmet\T_GK_KnightHelmet_N.png",
-            "M":  r"Helmet\T_GK_KnightHelmet_M.png",
-            "R":  r"Helmet\T_GK_KnightHelmet_R.png",
-            "E":  r"Helmet\T_GK_KnightHelmet_E.png",
-        },
-    },
-    {
-        "name":        "HeavyCloak",
-        "fbx":         r"Cloak\SM_GK_HeavyCloak.fbx",
-        "ue_mesh_path": "/Game/Characters/Player/Mesh",
-        "ue_tex_path":  "/Game/Characters/Player/Textures",
-        "textures": {
-            "BC": r"Cloak\T_GK_HeavyCloak_BC.png",
-            "N":  r"Cloak\T_GK_HeavyCloak_N.png",
-            "M":  r"Cloak\T_GK_HeavyCloak_M.png",
-            "R":  r"Cloak\T_GK_HeavyCloak_R.png",
-            "E":  r"Cloak\T_GK_HeavyCloak_E.png",
-        },
-    },
-    {
-        "name":        "KnightSword",
-        "fbx":         r"Sword\SM_GK_KnightSword.fbx",
-        "ue_mesh_path": "/Game/Weapons/Sword/Mesh",
-        "ue_tex_path":  "/Game/Weapons/Sword/Textures",
-        "textures": {
-            "BC": r"Sword\T_GK_KnightSword_BC.png",
-            "N":  r"Sword\T_GK_KnightSword_N.png",
-            "M":  r"Sword\T_GK_KnightSword_M.png",
-            "R":  r"Sword\T_GK_KnightSword_R.png",
-            "E":  r"Sword\T_GK_KnightSword_E.png",
-        },
-    },
-    # ── v2 에셋 (2026-05-31 추가) ──────────────────────────────────────
+    # ObsidianKnight — fbx=None (SM_ FBX 삭제됨, SK_ 버전은 SKELETAL_ASSETS에서 처리)
+    # 텍스처와 MI만 임포트/생성
     {
         "name":        "ObsidianKnight",
-        "fbx":         r"Character2\SM_GK_ObsidianKnight.fbx",
+        "fbx":         None,
         "ue_mesh_path": "/Game/Characters/Player/Mesh",
         "ue_tex_path":  "/Game/Characters/Player/Textures",
         "textures": {
@@ -104,7 +47,7 @@ ASSETS = [
             "N":  r"Sword2\T_GK_Dreadblade_N.png",
             "M":  r"Sword2\T_GK_Dreadblade_M.png",
             "R":  r"Sword2\T_GK_Dreadblade_R.png",
-            "E":  r"Sword2\T_GK_Dreadblade_E.png",   # 157KB — 실제 발광 이펙트
+            "E":  r"Sword2\T_GK_Dreadblade_E.png",
         },
     },
 ]
@@ -150,7 +93,12 @@ def _make_import_task(source_path, dest_package_path, dest_name, options=None):
 
 
 def import_static_mesh(asset_info):
-    name     = asset_info["name"]
+    name = asset_info["name"]
+
+    if not asset_info.get("fbx"):
+        unreal.log(f"[GK Import] ↷ SM_GK_{name} FBX 없음 — 텍스처/MI만 처리")
+        return []
+
     fbx_path = os.path.join(ART_ROOT, asset_info["fbx"])
     ue_path  = asset_info["ue_mesh_path"]
 
@@ -321,10 +269,11 @@ def run():
     unreal.log("=" * 60)
     unreal.log("  임포트 완료. Content Browser에서 확인하세요:")
     unreal.log("  Characters > Player > Mesh")
-    unreal.log("    SM_GK_DarkplateKnight / SM_GK_KnightHelmet / SM_GK_HeavyCloak")
-    unreal.log("    SM_GK_ObsidianKnight  (v2 캐릭터)")
+    unreal.log("    SK_GK_ObsidianKnight  (Mixamo 리깅 스켈레탈 메시)")
+    unreal.log("    MI_GK_ObsidianKnight  (PBR 머티리얼 인스턴스)")
     unreal.log("  Weapons > Sword > Mesh")
-    unreal.log("    SM_GK_KnightSword / SM_GK_Dreadblade (발광 이펙트 있음)")
+    unreal.log("    SM_GK_Dreadblade      (발광 이펙트 있음)")
+    unreal.log("    MI_GK_Dreadblade")
     unreal.log("=" * 60)
 
 
