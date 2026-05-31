@@ -2,7 +2,8 @@
 Ashen Ossuary — ObsidianKnight 리타게팅 셋업 (KnightAnimation 팩 기준)
 에이전트 E 작성
 
-소스: Rig_Knight_Base (이미 존재, KnightAnimation 팩 전용 IK Rig)
+소스: IK_Knight_Base (SKEL_Knight_Base 기반으로 신규 생성)
+      ※ Rig_Knight_Base 는 Control Rig 타입이므로 IK Retargeter 에서 사용 불가
 타겟: IK_GK_ObsidianKnight (Mixamo 본 이름으로 신규 생성)
 
 완료 시:
@@ -15,29 +16,94 @@ Ashen Ossuary — ObsidianKnight 리타게팅 셋업 (KnightAnimation 팩 기준
   3. Content Browser 수동 1단계:
      Characters > Player > Mesh 우클릭
      → Animation → IK Retargeter
-     → Source: Rig_Knight_Base / 저장: RTG_Knight_ObsidianKnight
+     → Source IK Rig: IK_Knight_Base  ← (Rig_Knight_Base 아님!)
+     저장: RTG_Knight_ObsidianKnight
      → Target IK Rig: IK_GK_ObsidianKnight
      → 에셋 리타깃 → Anim_Knight_* 전체 선택 → Export
 """
 
 import unreal
 
-KNIGHT_RIG_PATH    = "/Game/KnightAnimation/Demo/DemoCharacters/Rig_Knight_Base"
 KNIGHT_SKEL_PATH   = "/Game/KnightAnimation/Demo/DemoCharacters/SKEL_Knight_Base"
 OBSIDIAN_MESH_PATH = "/Game/Characters/Player/Mesh/SK_GK_ObsidianKnight"
 PLAYER_MESH_DIR    = "/Game/Characters/Player/Mesh"
+KNIGHT_IK_DIR      = "/Game/KnightAnimation/Demo/DemoCharacters"
 
 unreal.log("=" * 60)
 unreal.log("  ObsidianKnight 리타게팅 셋업 (KnightAnimation 기준)")
 unreal.log("=" * 60)
 
-# ── 소스 IK Rig 확인 ─────────────────────────────────────────────────
-knight_rig = unreal.EditorAssetLibrary.load_asset(KNIGHT_RIG_PATH)
-if knight_rig:
-    unreal.log(f"[GK Retarget] ✓ 소스 IK Rig 확인: Rig_Knight_Base")
+asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
+
+# ── 소스 IK Rig 생성 (SKEL_Knight_Base → IK_Knight_Base) ─────────────
+IK_KNIGHT_PATH = f"{KNIGHT_IK_DIR}/IK_Knight_Base"
+if unreal.EditorAssetLibrary.does_asset_exist(IK_KNIGHT_PATH):
+    unreal.EditorAssetLibrary.delete_asset(IK_KNIGHT_PATH)
+
+knight_skel_asset = unreal.EditorAssetLibrary.load_asset(KNIGHT_SKEL_PATH)
+
+# SKEL_Knight_Base 가 SkeletalMesh 인지 Skeleton 인지 확인
+if isinstance(knight_skel_asset, unreal.SkeletalMesh):
+    knight_mesh = knight_skel_asset
+    unreal.log("[GK Retarget] SKEL_Knight_Base = SkeletalMesh")
+elif isinstance(knight_skel_asset, unreal.Skeleton):
+    knight_mesh = None
+    unreal.log("[GK Retarget] SKEL_Knight_Base = Skeleton (프리뷰 메시 미설정)")
 else:
-    unreal.log_warning(f"[GK Retarget] ✗ Rig_Knight_Base 없음: {KNIGHT_RIG_PATH}")
-    unreal.log_warning("[GK Retarget]   KnightAnimation 팩이 임포트되어 있는지 확인하세요.")
+    knight_mesh = None
+    unreal.log_warning(f"[GK Retarget] SKEL_Knight_Base 로드 실패: {KNIGHT_SKEL_PATH}")
+
+ik_knight = asset_tools.create_asset(
+    "IK_Knight_Base", KNIGHT_IK_DIR,
+    unreal.IKRigDefinition,
+    unreal.IKRigDefinitionFactory()
+)
+
+knight_rig = None
+if ik_knight:
+    ctrl = unreal.IKRigController.get_controller(ik_knight)
+
+    if knight_mesh:
+        try:
+            ctrl.set_skeletal_mesh(knight_mesh)
+        except Exception:
+            try:
+                ik_knight.set_editor_property("preview_skeletal_mesh", knight_mesh)
+            except Exception as e:
+                unreal.log_warning(f"[GK Retarget]   Knight 프리뷰 메시 설정 실패: {e}")
+
+    # UE5 Mannequin 호환 본 이름 기준 체인
+    # Knight 팩이 Mannequin 호환 네이밍을 쓰는 경우 자동 매핑됨
+    KNIGHT_CHAINS = [
+        ("Root",           "root",        "root"),
+        ("Pelvis",         "pelvis",      "pelvis"),
+        ("Spine",          "spine_01",    "spine_03"),
+        ("Neck",           "neck_01",     "neck_01"),
+        ("Head",           "head",        "head"),
+        ("LeftClavicle",   "clavicle_l",  "clavicle_l"),
+        ("LeftArm",        "upperarm_l",  "hand_l"),
+        ("RightClavicle",  "clavicle_r",  "clavicle_r"),
+        ("RightArm",       "upperarm_r",  "hand_r"),
+        ("LeftLeg",        "thigh_l",     "foot_l"),
+        ("RightLeg",       "thigh_r",     "foot_r"),
+    ]
+
+    ok = 0
+    for chain_name, start, end in KNIGHT_CHAINS:
+        try:
+            ctrl.add_retarget_chain(chain_name, start, end, "")
+            ok += 1
+        except Exception as e:
+            unreal.log_warning(f"[GK Retarget]   Knight 체인 [{chain_name}] 실패: {e}")
+
+    unreal.EditorAssetLibrary.save_loaded_asset(ik_knight)
+    knight_rig = ik_knight
+    unreal.log(f"[GK Retarget] ✓ IK_Knight_Base 생성 — 체인 {ok}/{len(KNIGHT_CHAINS)}개")
+    if ok < len(KNIGHT_CHAINS):
+        unreal.log("[GK Retarget]   ※ 실패한 체인은 SKEL_Knight_Base 의 실제 본 이름을 확인 후")
+        unreal.log("[GK Retarget]     에디터에서 IK_Knight_Base 를 열고 수동으로 추가하세요.")
+else:
+    unreal.log_warning("[GK Retarget] ✗ IK_Knight_Base 생성 실패")
 
 # ── 타겟 IK Rig 생성 (Mixamo ObsidianKnight) ─────────────────────────
 unreal.log("[GK Retarget] IK_GK_ObsidianKnight 생성 중 (Mixamo 본)...")
@@ -130,7 +196,8 @@ else:
         unreal.log("[GK Retarget] ★ 수동 1단계 (2분) ★")
         unreal.log("  Content Browser > Characters > Player > Mesh")
         unreal.log("  우클릭 → Animation → IK Retargeter")
-        unreal.log("  → Source IK Rig: Rig_Knight_Base")
+        unreal.log("  → Source IK Rig: IK_Knight_Base  ← ★ Rig_Knight_Base 아님!")
+        unreal.log("    위치: KnightAnimation/Demo/DemoCharacters/IK_Knight_Base")
         unreal.log("  → 저장 이름: RTG_Knight_ObsidianKnight")
         unreal.log("  열리면 Target 패널에서 IK_GK_ObsidianKnight 선택")
         unreal.log("  → 상단 '에셋 리타깃' → Anim_Knight_* 전체 선택 → Export")
