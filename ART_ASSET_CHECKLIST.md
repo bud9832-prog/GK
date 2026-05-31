@@ -22,8 +22,10 @@
 
 | 분류 | 항목 | 용도·근거 | 우선순위 | 상태 | 비고 |
 | :--- | :--- | :--- | :---: | :--- | :--- |
-| 캐릭터 메쉬 | 플레이어 본체 메쉬 (저주받은 망자 기사) | Pillars §1. 풀플레이트·어두운 색조·실루엣 강조 | 최우선 | 요청 전 | 헬멧 또는 그림자 얼굴 처리 |
-| 캐릭터 머티리얼 | 본체 머티리얼·텍스처 세트 | Pillars §1. 검회색·녹슨 강철 톤 | 최우선 | 요청 전 | PBR 표준 |
+| 캐릭터 메쉬 | 플레이어 본체 메쉬 (저주받은 망자 기사) | Pillars §1. 풀플레이트·어두운 색조·실루엣 강조 | 최우선 | 수령 완료 | Meshy AI 생성. `art/Character/SM_GK_DarkplateKnight.fbx`. **⚠ 현재 스태틱 메쉬(애니 없음)** — 플레이어블 캐릭터 사용 전 리깅 작업 필요 |
+| 캐릭터 머티리얼 | 본체 머티리얼·텍스처 세트 | Pillars §1. 검회색·녹슨 강철 톤 | 최우선 | 수령 완료 | PBR 5종 세트 (BC/N/M/R/E). `art/Character/T_GK_DarkplateKnight_*.png` |
+| 캐릭터 메쉬 | 헬멧 | Pillars §1. 실루엣 강조 | 높음 | 수령 완료 | Meshy AI 생성. `art/Helmet/SM_GK_KnightHelmet.fbx` + 텍스처 5종 |
+| 캐릭터 메쉬 | 망토 | Pillars §1. 실루엣 강조 | 높음 | 수령 완료 | Meshy AI 생성. `art/Cloak/SM_GK_HeavyCloak.fbx` + 텍스처 5종 |
 | 애니메이션 | Idle 루프 | Pillars §2. 묵직한 정지 자세 | 최우선 | 요청 전 | 미세한 호흡 모션 권장 |
 | 애니메이션 | Walk 루프 | Pillars §2. 묵직한 보행 | 최우선 | 요청 전 | `OnFootstep` 노티 위치 명시 필요 |
 | 애니메이션 | Run/Sprint 루프 | Pillars §2. 스테미나 소모 달리기 | 최우선 | 요청 전 | Walk와 분리 |
@@ -50,7 +52,7 @@ KiHoon 갱신: Stage 1 시작부터 1·2·3타 콤보 제공. 콤보 2/3 몽타�
 
 | 분류 | 항목 | 용도 | 우선순위 | 상태 | 비고 |
 | :--- | :--- | :--- | :---: | :--- | :--- |
-| 무기 | 플레이어 기본 무기 메쉬 | 콤보 판정·시각화 | 높음 | 수령 완료 | 히어로 프로토타입: `art/weapons/SM_AO_OssuaryBlade.obj` + `hand_r_socket` 후보. 소켓/스케일 검증 후 최종 무기 메쉬 확정 필요 |
+| 무기 | 플레이어 기본 무기 메쉬 | 콤보 판정·시각화 | 높음 | 수령 완료 | Meshy AI 생성. `art/Sword/SM_GK_KnightSword.fbx` + PBR 텍스처 5종. `hand_r_socket` 어태치. 소켓/스케일 검증 후 최종 확정 필요 |
 | 애니메이션 | 콤보 1타 몽타주 | Skill 1 핵심 액션 (ComboIndex=0) | 높음 | 요청 전 | 루트모션 여부 명시, `OnWeaponSwing(0)` 호출 타이밍, HitWindow/ComboInputWindow 노티 구간 명시 |
 | 애니메이션 | 콤보 2타 몽타주 | Stage 1 시작 가능 (ComboIndex=1) | 높음 | 요청 전 | `OnWeaponSwing(1)`, 1타와 자연스러운 연결 |
 | 애니메이션 | 콤보 3타 몽타주 | Stage 1 시작 가능 (ComboIndex=2 — 콤보 종결타) | 높음 | 요청 전 | `OnWeaponSwing(2)`, 가장 묵직한 마무리 모션 |
