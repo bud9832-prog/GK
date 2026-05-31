@@ -27,29 +27,38 @@ def print_bones(asset_path, label):
     unreal.log(f"  {label} 본 목록")
     unreal.log(f"{'='*50}")
 
-    ref_skel = skeleton.get_editor_property("reference_skeleton") if hasattr(skeleton, "get_editor_property") else None
-
-    # 방법 1: ReferenceSkeleton API
+    # 방법 1: Skeleton.get_num_bones / get_bone_name
     try:
         num = skeleton.get_num_bones()
         for i in range(num):
             name = skeleton.get_bone_name(i)
-            parent_idx = skeleton.get_parent_bone(name)
-            indent = "  " if i > 0 else ""
-            unreal.log(f"  [{i:02d}] {indent}{name}")
+            unreal.log(f"  [{i:02d}] {name}")
         return
-    except Exception:
-        pass
+    except Exception as e:
+        unreal.log(f"  [방법1 실패] {e}")
 
-    # 방법 2: SkeletalMesh bones
+    # 방법 2: AnimationLibrary
     try:
         if isinstance(asset, unreal.SkeletalMesh):
-            bones = unreal.EditorSkeletalMeshLibrary.get_lod_info(asset, 0)
-            unreal.log(f"  LOD 정보: {bones}")
+            bones = unreal.AnimationLibrary.get_bone_track_names(
+                unreal.EditorAssetLibrary.load_asset(asset_path), skeleton
+            )
+            for i, b in enumerate(bones):
+                unreal.log(f"  [{i:02d}] {b}")
+            return
     except Exception as e:
         unreal.log(f"  [방법2 실패] {e}")
 
-    unreal.log(f"  → 본 이름 직접 확인: Content Browser에서 {label} 더블클릭 > Skeleton Tree")
+    # 방법 3: SkeletalMeshEditorSubsystem
+    try:
+        subsystem = unreal.get_editor_subsystem(unreal.SkeletalMeshEditorSubsystem)
+        if isinstance(asset, unreal.SkeletalMesh):
+            info = subsystem.get_lod_build_settings(asset, 0)
+            unreal.log(f"  LOD 정보: {info}")
+    except Exception as e:
+        unreal.log(f"  [방법3 실패] {e}")
+
+    unreal.log(f"  → 직접 확인: Content Browser에서 에셋 더블클릭 > Skeleton Tree 탭")
 
 print_bones(KNIGHT_SKEL_PATH, "Knight (SKEL_Knight_Base)")
 print_bones(OBSIDIAN_MESH_PATH, "ObsidianKnight (SK_GK_ObsidianKnight)")
