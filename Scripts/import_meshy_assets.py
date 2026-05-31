@@ -259,9 +259,8 @@ SKELETAL_ASSETS = [
         "fbx":      r"C:\UE\GK\art\Character2\SK_GK_ObsidianKnight.fbx",
         "ue_path":  "/Game/Characters/Player/Mesh",
         "name":     "SK_GK_ObsidianKnight",
-        # 기존 UE5 Mannequin 스켈레톤에 리타게팅하여 애니메이션 재사용
-        # 스켈레톤은 SK_Mannequin 메시와 같은 폴더에 자동 생성됨 (/Meshes/)
-        "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin_Skeleton",
+        # Mixamo 리깅 — 자체 스켈레톤 자동 생성 (skeleton=None)
+        "skeleton": None,
     },
 ]
 
@@ -270,7 +269,7 @@ def import_skeletal_meshes():
     for info in SKELETAL_ASSETS:
         if not os.path.exists(info["fbx"]):
             unreal.log_warning(
-                f"[GK Import] SK 파일 없음 (리깅 미완료): {info['fbx']}\n"
+                f"[GK Import] SK 파일 없음: {info['fbx']}\n"
                 f"           scripts/rig_obsidian_knight.py 먼저 실행하세요."
             )
             continue
@@ -280,17 +279,8 @@ def import_skeletal_meshes():
         options.import_textures    = False
         options.import_materials   = False
         options.import_as_skeletal = True
-
-        # 기존 Mannequin 스켈레톤 사용 시도
-        skel = unreal.EditorAssetLibrary.load_asset(info["skeleton"])
-        if skel:
-            options.skeleton = skel
-            unreal.log(f"[GK Import] Mannequin 스켈레톤 연결: {info['name']}")
-        else:
-            unreal.log_warning(
-                f"[GK Import] Mannequin 스켈레톤 없음 — 새 스켈레톤 자동 생성: {info['name']}\n"
-                f"           스켈레톤 수동 재할당: Scripts/setup_retargeting.py 실행"
-            )
+        # Mixamo 리깅 — 스켈레톤 자동 생성 (기존 스켈레톤 강제 할당 없음)
+        unreal.log(f"[GK Import] Mixamo 스켈레톤 자동 생성: {info['name']}")
 
         task = _make_import_task(info["fbx"], info["ue_path"], info["name"], options)
         unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
